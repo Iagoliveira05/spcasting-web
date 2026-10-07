@@ -182,7 +182,7 @@ export function JobForm({
           Status
           <select
             value={form.status}
-                        disabled={!job}
+            disabled={!job}
             onChange={(event) => change("status", event.target.value)}
           >
             <option value="open">Aberta</option>
