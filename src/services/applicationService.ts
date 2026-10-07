@@ -1,8 +1,9 @@
 import {
   collection,
   doc,
+  getCountFromServer,
   getDocs,
-  increment,
+  orderBy,
   query,
   runTransaction,
   serverTimestamp,
@@ -11,6 +12,7 @@ import {
 import { db, isFirebaseConfigured } from "./firebase";
 import type { JobApplication } from "../types/Application";
 import type { UserProfile } from "../types/User";
+import { localDateString } from "../utils/formatters";
 
 function requireDb() {
   if (!isFirebaseConfigured || !db)
@@ -39,7 +41,9 @@ export async function applyToJob(jobId: string, profile: UserProfile) {
       throw new Error("Você já se candidatou a esta vaga.");
     if (!job.exists() || job.data().status !== "open")
       throw new Error("Esta vaga não está mais aberta.");
-    const jobCityId = job.data().city?.id;
+    const jobData = job.data();
+    if (jobData.date < localDateString())
+      throw new Error("Esta vaga já foi encerrada.");
     if (
       !profile.name ||
       !profile.phone ||
@@ -49,7 +53,7 @@ export async function applyToJob(jobId: string, profile: UserProfile) {
       throw new Error("Complete seu perfil antes de se candidatar.");
     if (!profile.compositePath)
       throw new Error("Envie seu composite antes de se candidatar.");
-    if (!profile.cities.some((city) => city.id === jobCityId))
+    if (!profile.cities.some((city) => city.id === jobData.city?.id))
       throw new Error(
         "Adicione ao seu perfil a cidade desta vaga antes de se candidatar.",
       );
@@ -70,6 +74,7 @@ export async function getUserApplications(
     query(
       collection(requireDb(), "applications"),
       where("userId", "==", userId),
+      orderBy("createdAt", "desc"),
     ),
   );
   return snapshot.docs.map(
@@ -81,7 +86,11 @@ export async function getJobApplications(
   jobId: string,
 ): Promise<JobApplication[]> {
   const snapshot = await getDocs(
-    query(collection(requireDb(), "applications"), where("jobId", "==", jobId)),
+    query(
+      collection(requireDb(), "applications"),
+      where("jobId", "==", jobId),
+      orderBy("createdAt", "asc"),
+    ),
   );
   return snapshot.docs.map(
     (item) => ({ id: item.id, ...item.data() }) as JobApplication,
@@ -109,12 +118,11 @@ export async function removeApplication(jobId: string, userId: string) {
       const shouldReopen =
         jobData.status === "closed" &&
         !jobData.closedByAdmin &&
-        jobData.date > new Date().toISOString().slice(0, 10);
+        jobData.date >= localDateString() &&
+        selectedWorkers < jobData.maxWorkers;
       transaction.update(jobRef, {
         selectedWorkers,
-        ...(shouldReopen && selectedWorkers < jobData.maxWorkers
-          ? { status: "open" }
-          : {}),
+        ...(shouldReopen ? { status: "open" } : {}),
         updatedAt: serverTimestamp(),
       });
     }
@@ -143,10 +151,13 @@ export async function setApplicationSelected(
     if (isSelected === selected) return;
     if (selected) {
       if (
-        jobData.date < new Date().toISOString().slice(0, 10) ||
-        jobData.status === "finished"
+        jobData.date < localDateString() ||
+        jobData.status === "finished" ||
+        jobData.closedByAdmin
       )
-        throw new Error("Esta vaga já foi encerrada.");
+        throw new Error(
+          "Esta vaga foi encerrada e não pode receber novas seleções.",
+        );
       const count = jobData.selectedWorkers ?? 0;
       if (count >= jobData.maxWorkers)
         throw new Error("O limite de pessoas selecionadas já foi atingido.");
@@ -155,9 +166,12 @@ export async function setApplicationSelected(
         selectedAt: serverTimestamp(),
       });
       transaction.update(jobRef, {
-        selectedWorkers: increment(1),
+        selectedWorkers: count + 1,
         status: count + 1 >= jobData.maxWorkers ? "closed" : jobData.status,
-        closedByAdmin: false,
+        closedByAdmin:
+          count + 1 >= jobData.maxWorkers
+            ? false
+            : (jobData.closedByAdmin ?? false),
         updatedAt: serverTimestamp(),
       });
     } else {
@@ -165,7 +179,7 @@ export async function setApplicationSelected(
       const shouldReopen =
         jobData.status === "closed" &&
         !jobData.closedByAdmin &&
-        jobData.date > new Date().toISOString().slice(0, 10) &&
+        jobData.date >= localDateString() &&
         count < jobData.maxWorkers;
       transaction.update(applicationRef, {
         status: "applied",
@@ -181,6 +195,8 @@ export async function setApplicationSelected(
 }
 
 export async function countApplications() {
-  const applications = await getDocs(collection(requireDb(), "applications"));
-  return applications.size;
+  const snapshot = await getCountFromServer(
+    collection(requireDb(), "applications"),
+  );
+  return snapshot.data().count;
 }

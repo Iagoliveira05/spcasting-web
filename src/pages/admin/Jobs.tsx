@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowUpRight, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 import { setJobStatus, getAllJobs } from "../../services/jobService";
 import { formatCurrency, formatDate } from "../../utils/formatters";
 import type { Job, JobStatus } from "../../types/Job";
@@ -26,7 +26,15 @@ export function AdminJobsPage() {
     }
   }
   useEffect(() => {
-    void refresh();
+    if (!configured) return;
+    getAllJobs()
+      .then(setJobs)
+      .catch((reason: unknown) =>
+        setError(
+          reason instanceof Error ? reason.message : "Erro ao carregar vagas.",
+        ),
+      )
+      .finally(() => setLoading(false));
   }, [configured]);
 
   async function finish(job: Job) {

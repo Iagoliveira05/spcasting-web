@@ -1,75 +1,63 @@
-# React + TypeScript + Vite
+# SPCasting
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicação web para vagas temporárias, perfis de freelancers e seleção de candidatos. Frontend em React, TypeScript, Vite, Tailwind CSS e React Router; autenticação e dados usam Firebase. Municípios e estados vêm da API oficial do IBGE.
 
-Currently, two official plugins are available:
+## Rodar localmente
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+1. Instale as dependências: `npm install`.
+2. Copie `.env.example` para `.env.local`.
+3. Preencha os valores de configuração do app Web Firebase descritos abaixo.
+4. Execute `npm run dev`.
 
-## React Compiler
+Verificações: `npm run build` e `npm run lint`.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Firebase necessário
 
-## Expanding the ESLint configuration
+Crie um projeto no [Firebase Console](https://console.firebase.google.com/) e registre um app Web. Em **Configurações do projeto > Geral > Seus apps > SDK de configuração**, copie os valores para `.env.local`:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- `VITE_FIREBASE_API_KEY`
+- `VITE_FIREBASE_AUTH_DOMAIN`
+- `VITE_FIREBASE_PROJECT_ID`
+- `VITE_FIREBASE_MESSAGING_SENDER_ID`
+- `VITE_FIREBASE_APP_ID`
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+A configuração do SDK Web é entregue ao navegador e não é uma credencial administrativa. Restrinja a chave por domínio no Google Cloud quando publicar; as permissões dos dados dependem das Security Rules, nunca de esconder a chave.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+No Console do Firebase:
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+1. Em **Authentication > Sign-in method**, habilite **E-mail/senha** e **Google**. Inclua `localhost` e o domínio publicado em **Authorized domains**.
+2. Crie o banco em **Firestore Database** (modo de produção).
+3. Publique regras e índices com Firebase CLI, depois de escolher o projeto em `firebase use --add`:
 
-```
+   ```sh
+   firebase deploy --only firestore:rules,firestore:indexes
+   ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+   A configuração está em `firebase.json`; não é necessário criar servidor Express ou backend próprio.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Conta administrativa única
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+1. Crie a conta SPCasting em **Authentication > Users**, usando o provedor E-mail/senha habilitado.
+2. Copie o UID dessa conta.
+3. No Firestore Console, crie manualmente `users/{UID}` com `uid` igual ao UID e os campos `name`, `email`, `phone`, `birthDate`, `instagram`, `cities: []`, `compositeUrl: ""`, `compositePath: ""`, `compositeType: null`, `role: "admin"`, `createdAt` e `updatedAt` (timestamps).
+4. Entre pelo `/login`. A conta administrativa só é provisionada pelo Console. Regras impedem que um freelancer altere seu `role` para `admin`.
 
-```
+Não crie documento admin por formulário e nunca inclua credenciais de conta de serviço no frontend.
+
+## Arquivos do Firebase
+
+- `firestore.rules`: perfis privados, vagas publicáveis, candidatura própria e alterações administrativas.
+- `firestore.indexes.json`: índices para oportunidades, inscrições e isenção
+  de índice para os dados binários dos composites.
+
+Os composites são divididos em documentos de até 400 KiB na subcoleção
+`users/{uid}/compositeChunks`. O arquivo continua privado, pode ter até 10 MB e
+só pode ser lido pelo proprietário ou pelo admin. Essa solução usa a franquia
+gratuita do Firestore e não requer Firebase Storage, bucket, CORS ou plano
+Blaze.
+
+## Limite conhecido do MVP
+
+A data da vaga é comparada em horário local; oportunidades passadas deixam de aparecer e são exibidas como encerradas. A persistência definitiva de `finished` acontece ao carregar a lista administrativa. Para encerramento pontual mesmo sem ninguém acessar o painel, a próxima etapa de produção é uma função agendada do Firebase (Cloud Functions), sem necessidade de servidor Express.
+
+O fluxo de seleção usa transação Firestore e contador na vaga para evitar ultrapassar `maxWorkers`. A API do IBGE não requer chave. Não há chave real no repositório; preencha apenas `.env.local` no seu ambiente.

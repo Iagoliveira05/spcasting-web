@@ -8,7 +8,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 import {
   applyToJob,
   getUserApplications,
@@ -16,6 +16,7 @@ import {
 import { getJob } from "../../services/jobService";
 import { formatCurrency, formatDate } from "../../utils/formatters";
 import type { Job } from "../../types/Job";
+import { localDateString } from "../../utils/formatters";
 
 export function JobDetailsPage() {
   const { jobId = "" } = useParams();
@@ -123,8 +124,7 @@ export function JobDetailsPage() {
       </section>
     );
 
-  const isOpen =
-    job.status === "open" && job.date >= new Date().toISOString().slice(0, 10);
+  const isOpen = job.status === "open" && job.date >= localDateString();
 
   return (
     <section className="content-wrap job-detail-page">

@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { ExternalLink, FileText, Upload } from "lucide-react";
 import {
+  deleteComposite,
   openComposite,
   uploadComposite,
   validateComposite,
-} from "../../services/storageService";
+} from "../../services/compositeService";
 import type { CompositeType } from "../../types/User";
 
 interface CompositeValue {
@@ -16,10 +17,12 @@ interface CompositeValue {
 export function CompositeUpload({
   uid,
   value,
+  persistedPath,
   onChange,
 }: {
   uid: string;
   value: CompositeValue;
+  persistedPath: string;
   onChange: (value: CompositeValue) => void;
 }) {
   const [busy, setBusy] = useState(false);
@@ -31,7 +34,12 @@ export function CompositeUpload({
       validateComposite(file);
       setError("");
       setBusy(true);
-      onChange(await uploadComposite(uid, file));
+      const pendingPath = value.compositePath;
+      const nextComposite = await uploadComposite(uid, file);
+      onChange(nextComposite);
+      if (pendingPath && pendingPath !== persistedPath) {
+        await deleteComposite(pendingPath).catch(() => undefined);
+      }
     } catch (reason) {
       setError(
         reason instanceof Error
@@ -44,11 +52,13 @@ export function CompositeUpload({
   }
 
   async function viewComposite() {
+    const preview = window.open("about:blank", "_blank");
     try {
       const url = await openComposite(value.compositePath);
-      window.open(url, "_blank", "noopener,noreferrer");
+      if (preview) preview.location.href = url;
       window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (reason) {
+      preview?.close();
       setError(
         reason instanceof Error
           ? reason.message

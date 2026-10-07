@@ -7,10 +7,10 @@ import {
   Users,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 import { countApplications } from "../../services/applicationService";
 import { getAllJobs } from "../../services/jobService";
-import { formatDate } from "../../utils/formatters";
+import { formatDate, localDateString } from "../../utils/formatters";
 import type { Job } from "../../types/Job";
 
 export function AdminDashboardPage() {
@@ -37,16 +37,15 @@ export function AdminDashboardPage() {
       .finally(() => setLoading(false));
   }, [configured]);
 
+  const today = localDateString();
   const open = jobs.filter(
-    (job) =>
-      job.status === "open" &&
-      job.date >= new Date().toISOString().slice(0, 10),
+    (job) => job.status === "open" && job.date >= today,
   ).length;
   const closed = jobs.filter((job) => job.status === "closed").length;
   const finished = jobs.filter(
     (job) =>
       job.status === "finished" ||
-      job.date < new Date().toISOString().slice(0, 10),
+      job.date < today,
   ).length;
   const selected = jobs.reduce(
     (total, job) => total + (job.selectedWorkers || 0),

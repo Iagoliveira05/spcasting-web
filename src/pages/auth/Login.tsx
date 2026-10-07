@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, Globe2, LockKeyhole } from "lucide-react";
 import { loginWithEmail, loginWithGoogle } from "../../services/authService";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -19,8 +19,8 @@ export function LoginPage() {
     setBusy(true);
     setError("");
     try {
-      await loginWithEmail(email, password);
-      navigate("/vagas");
+      const result = await loginWithEmail(email, password);
+      navigate(result.needsProfile ? "/perfil" : "/vagas");
     } catch (reason) {
       setError(
         reason instanceof Error ? reason.message : "Não foi possível entrar.",

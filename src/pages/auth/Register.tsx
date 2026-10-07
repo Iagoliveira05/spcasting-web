@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, UserRoundPlus } from "lucide-react";
 import { registerWithEmail } from "../../services/authService";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 
 export function RegisterPage() {
   const navigate = useNavigate();

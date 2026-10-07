@@ -3,8 +3,9 @@ import { Link } from "react-router-dom";
 import { Check, ChevronLeft, Save } from "lucide-react";
 import { CityPicker } from "../../components/profile/CityPicker";
 import { CompositeUpload } from "../../components/profile/CompositeUpload";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 import { saveUserProfile } from "../../services/userService";
+import { deleteComposite } from "../../services/compositeService";
 import type { City } from "../../types/City";
 import type { CompositeType } from "../../types/User";
 
@@ -31,6 +32,7 @@ export function ProfilePage() {
     setError("");
     setMessage("");
     try {
+      const previousCompositePath = profile?.compositePath || "";
       await saveUserProfile(user.uid, {
         name: name.trim(),
         email: user.email || "",
@@ -41,6 +43,12 @@ export function ProfilePage() {
         ...composite,
       });
       await refreshProfile();
+      if (
+        previousCompositePath &&
+        previousCompositePath !== composite.compositePath
+      ) {
+        await deleteComposite(previousCompositePath).catch(() => undefined);
+      }
       setMessage("Perfil salvo com sucesso.");
     } catch (reason) {
       setError(
@@ -149,6 +157,7 @@ export function ProfilePage() {
           <CompositeUpload
             uid={user.uid}
             value={composite}
+            persistedPath={profile?.compositePath || ""}
             onChange={setComposite}
           />
         )}

@@ -16,7 +16,7 @@ Sempre considere estas regras ao criar ou modificar funcionalidades.
 - React Router DOM
 - Firebase Authentication
 - Cloud Firestore
-- Firebase Storage
+- Cloud Firestore (incluindo composites fragmentados, para manter o plano gratuito)
 - API de Localidades do IBGE
 - Lucide React
 
@@ -80,7 +80,8 @@ Formatos:
 
 Tamanho máximo: 10 MB.
 
-Armazenar no Firebase Storage.
+Armazenar de forma privada no Cloud Firestore, dividido em chunks menores que
+1 MiB, sem depender do Firebase Storage ou do plano Blaze.
 
 Um novo upload substitui o anterior.
 

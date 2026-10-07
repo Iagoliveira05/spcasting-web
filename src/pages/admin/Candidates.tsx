@@ -8,14 +8,14 @@ import {
   UserRoundMinus,
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 import {
   getJobApplications,
   removeApplication,
   setApplicationSelected,
 } from "../../services/applicationService";
 import { getJob } from "../../services/jobService";
-import { openComposite } from "../../services/storageService";
+import { openComposite } from "../../services/compositeService";
 import { getUserProfile } from "../../services/userService";
 import { calculateAge, formatDate } from "../../utils/formatters";
 import { createWhatsAppLink } from "../../utils/whatsapp";
@@ -54,7 +54,23 @@ export function CandidatesPage() {
     );
   }
   useEffect(() => {
-    refresh()
+    if (!configured) return;
+    let active = true;
+    Promise.all([getJob(jobId), getJobApplications(jobId)])
+      .then(async ([currentJob, applications]) => ({
+        currentJob,
+        candidates: await Promise.all(
+          applications.map(async (application) => ({
+            application,
+            profile: await getUserProfile(application.userId),
+          })),
+        ),
+      }))
+      .then(({ currentJob, candidates }) => {
+        if (!active) return;
+        setJob(currentJob);
+        setApplicants(candidates);
+      })
       .catch((reason: unknown) =>
         setError(
           reason instanceof Error
@@ -63,6 +79,9 @@ export function CandidatesPage() {
         ),
       )
       .finally(() => setLoading(false));
+    return () => {
+      active = false;
+    };
   }, [configured, jobId]);
 
   async function select(candidate: Applicant) {

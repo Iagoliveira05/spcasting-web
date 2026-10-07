@@ -406,7 +406,7 @@
   padding: 17px;
   border: 1px solid #e7e6df;
   border-radius: 6px;
-  background: white;
+  background: #fff;
   transition:
     border-color 0.15s,
     transform 0.15s;
@@ -546,7 +546,7 @@
   padding: 18px;
   border: 1px solid #e7e6df;
   border-radius: 6px;
-  background: white;
+  background: #fff;
 }
 .detail-fact {
   display: flex;
@@ -587,9 +587,6 @@
   color: #53775a;
   text-align: center;
   font-size: 10px;
-}
-.button-link {
-  text-decoration: none;
 }
 .subpage-list > h1 {
   margin: 12px 0 9px;
@@ -680,7 +677,7 @@
   place-items: center;
   border: 1px solid #eceae5;
   border-radius: 4px;
-  background: white;
+  background: #fff;
   cursor: pointer;
 }
 .danger-action {
@@ -714,7 +711,7 @@
 }
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 10px;
   margin: 23px 0 30px;
 }
@@ -724,7 +721,7 @@
   padding: 15px;
   border: 1px solid #e7e6df;
   border-radius: 5px;
-  background: white;
+  background: #fff;
 }
 .stat-card > span {
   display: block;
@@ -915,7 +912,7 @@
   padding: 14px;
   border: 1px solid #e7e6df;
   border-radius: 5px;
-  background: white;
+  background: #fff;
 }
 .candidate-selected {
   border-color: #d2e1d1;
@@ -992,7 +989,11 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
-
+@media (max-width: 950px) {
+  .stats-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
 @media (max-width: 800px) {
   .stats-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1086,14 +1087,6 @@
   }
   .admin-job-row > svg {
     display: none;
-  }
-  .admin-job-row .status-pill {
-    grid-column: 2;
-    grid-row: 1;
-  }
-  .admin-job-row > div {
-    grid-column: 1;
-    grid-row: 1;
   }
   .admin-job-card-foot {
     align-items: flex-start;

@@ -11,6 +11,8 @@ import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { auth, db, isFirebaseConfigured } from "./firebase";
 import type { UserProfile } from "../types/User";
 
+const adminUid = import.meta.env.VITE_FIREBASE_ADMIN_UID as string | undefined;
+
 function requireServices() {
   if (!isFirebaseConfigured || !auth || !db)
     throw new Error("O Firebase ainda não foi configurado neste ambiente.");
@@ -23,8 +25,29 @@ async function ensureFreelancerProfile(
 ): Promise<boolean> {
   const { db } = requireServices();
   const profileRef = doc(db, "users", user.uid);
-  const profile = await getDoc(profileRef);
-  if (profile.exists()) return false;
+  const snapshot = await getDoc(profileRef);
+  const isConfiguredAdmin = Boolean(
+    adminUid && user.uid === adminUid && user.email,
+  );
+  if (snapshot.exists()) {
+    const profile = snapshot.data();
+    if (profile.role === "admin") return false;
+    if (isConfiguredAdmin) {
+      await setDoc(
+        profileRef,
+        { role: "admin", updatedAt: serverTimestamp() },
+        { merge: true },
+      );
+      return false;
+    }
+    return (
+      !profile.name ||
+      !profile.phone ||
+      !profile.birthDate ||
+      !profile.cities?.length ||
+      !profile.compositePath
+    );
+  }
 
   await setDoc(profileRef, {
     uid: user.uid,
@@ -37,7 +60,7 @@ async function ensureFreelancerProfile(
     compositeUrl: "",
     compositePath: "",
     compositeType: null,
-    role: "freelancer",
+    role: isConfiguredAdmin ? "admin" : "freelancer",
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   } satisfies Omit<UserProfile, "createdAt" | "updatedAt"> & {
@@ -62,8 +85,8 @@ export async function registerWithEmail(
 export async function loginWithEmail(email: string, password: string) {
   const { auth } = requireServices();
   const result = await signInWithEmailAndPassword(auth, email, password);
-  await ensureFreelancerProfile(result.user);
-  return result.user;
+  const needsProfile = await ensureFreelancerProfile(result.user);
+  return { user: result.user, needsProfile };
 }
 
 export async function loginWithGoogle() {

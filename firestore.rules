@@ -3,6 +3,12 @@ service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
     function isOwner(userId) { return signedIn() && request.auth.uid == userId; }
+    function isBootstrapAdmin(userId) {
+      return signedIn()
+        && userId == 'KUuPm1jtfFZTE3rQsf25hsA7f313'
+        && request.auth.uid == userId
+        && request.auth.token.email == 'iago2011.andrade@hotmail.com';
+    }
     function isAdmin() {
       return signedIn()
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
@@ -13,14 +19,72 @@ service cloud.firestore {
     function job(jobId) {
       return get(/databases/$(database)/documents/jobs/$(jobId)).data;
     }
+    function validCompositePath(userId, path) {
+      return path == ''
+        || path.matches('firestore:' + userId + ':[A-Za-z0-9_-]+');
+    }
+    function validCity(city) {
+      return city is map
+        && city.keys().hasOnly(['id', 'name', 'uf'])
+        && city.id is int
+        && city.id > 0
+        && city.name is string
+        && city.name.size() > 0
+        && city.uf is string
+        && city.uf.size() == 2;
+    }
+    function validJob(data) {
+      return data.title is string && data.title.size() > 0
+        && data.name is string && data.name.size() > 0
+        && data.description is string && data.description.size() > 0
+        && data.dailyRate is number && data.dailyRate > 0
+        && data.date is string && data.date.size() == 10
+        && data.startTime is string && data.startTime.size() == 5
+        && data.endTime is string && data.endTime.size() == 5
+        && validCity(data.city)
+        && data.location is string && data.location.size() > 0
+        && data.maxWorkers is int && data.maxWorkers > 0
+        && data.selectedWorkers is int && data.selectedWorkers >= 0
+        && data.selectedWorkers <= data.maxWorkers
+        && data.status in ['open', 'closed', 'finished']
+        && data.closedByAdmin is bool
+        && data.workDateEnd is timestamp
+        && (data.status != 'open' || data.workDateEnd > request.time);
+    }
     function completeForJob(userId, jobId) {
       let candidate = profile(userId);
       let target = job(jobId);
       return candidate.name is string && candidate.name.size() > 1
         && candidate.phone is string && candidate.phone.size() >= 10
         && candidate.birthDate is string && candidate.birthDate.size() == 10
-        && candidate.compositePath is string && candidate.compositePath.size() > 0
+        && candidate.compositePath is string && validCompositePath(userId, candidate.compositePath)
+        && candidate.compositePath.size() > 0
         && candidate.cities is list && candidate.cities.hasAny([target.city]);
+    }
+    function selectionRelease(jobId, userId) {
+      let applicationPath = /databases/$(database)/documents/applications/$(jobId + '_' + userId);
+      let jobPath = /databases/$(database)/documents/jobs/$(jobId);
+      let applicationBefore = get(applicationPath);
+      let jobBefore = get(jobPath);
+      let jobAfter = getAfter(jobPath);
+      return signedIn()
+        && exists(applicationPath)
+        && applicationBefore.data.status == 'selected'
+        && (applicationBefore.data.userId == request.auth.uid || isAdmin())
+        && (!existsAfter(applicationPath)
+          || (getAfter(applicationPath).data.status == 'applied'
+            && getAfter(applicationPath).data.selectedAt == null))
+        && jobAfter.data.selectedWorkers == jobBefore.data.selectedWorkers - 1
+        && jobAfter.data.selectedWorkers >= 0
+        && jobAfter.data.maxWorkers == jobBefore.data.maxWorkers
+        && jobAfter.data.closedByAdmin == jobBefore.data.closedByAdmin
+        && jobAfter.data.workDateEnd == jobBefore.data.workDateEnd
+        && (jobAfter.data.status == jobBefore.data.status
+          || (jobBefore.data.status == 'closed'
+            && jobBefore.data.closedByAdmin != true
+            && jobBefore.data.workDateEnd > request.time
+            && jobAfter.data.status == 'open'
+            && jobAfter.data.selectedWorkers < jobBefore.data.maxWorkers));
     }
 
     match /users/{userId} {
@@ -28,33 +92,65 @@ service cloud.firestore {
       allow list: if isAdmin();
       allow create: if isOwner(userId)
         && request.resource.data.uid == userId
-        && request.resource.data.role == 'freelancer'
-        && request.resource.data.email == request.auth.token.email;
-      allow update: if (isAdmin() || isOwner(userId))
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.compositePath is string
+        && validCompositePath(userId, request.resource.data.compositePath)
+        && (request.resource.data.role == 'freelancer'
+          || (isBootstrapAdmin(userId)
+            && request.resource.data.role == 'admin'));
+      allow update: if isOwner(userId)
         && request.resource.data.uid == userId
-        && request.resource.data.role == resource.data.role
-        && (isAdmin() || request.resource.data.email == request.auth.token.email);
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.compositePath is string
+        && validCompositePath(userId, request.resource.data.compositePath)
+        && (request.resource.data.role == resource.data.role
+          || (isBootstrapAdmin(userId)
+            && resource.data.role == 'freelancer'
+            && request.resource.data.role == 'admin'));
       allow delete: if false;
+
+      match /compositeChunks/{chunkId} {
+        allow get, list: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId)
+          && request.resource.data.keys().hasOnly([
+            'ownerId', 'version', 'index', 'total', 'contentType', 'data',
+            'createdAt'
+          ])
+          && request.resource.data.ownerId == userId
+          && request.resource.data.version is string
+          && request.resource.data.version.size() > 0
+          && request.resource.data.index is int
+          && request.resource.data.index >= 0
+          && request.resource.data.total is int
+          && request.resource.data.total > 0
+          && request.resource.data.total <= 27
+          && request.resource.data.index < request.resource.data.total
+          && request.resource.data.contentType in [
+            'application/pdf', 'image/jpeg', 'image/png', 'image/webp'
+          ]
+          && request.resource.data.data is bytes
+          && request.resource.data.data.size() > 0
+          && request.resource.data.data.size() <= 409600
+          && request.resource.data.createdAt == request.time;
+        allow update: if false;
+        allow delete: if isOwner(userId) || isAdmin();
+      }
     }
 
     match /jobs/{jobId} {
       allow read: if isAdmin()
-        || (signedIn() && resource.data.status == 'open')
+        || (resource.data.status == 'open'
+          && resource.data.workDateEnd > request.time)
         || (signedIn() && exists(/databases/$(database)/documents/applications/$(jobId + '_' + request.auth.uid)));
       allow create: if isAdmin()
+        && validJob(request.resource.data)
         && request.resource.data.status == 'open'
-        && request.resource.data.maxWorkers is int
-        && request.resource.data.maxWorkers > 0
-        && request.resource.data.dailyRate is number
-        && request.resource.data.dailyRate > 0;
-      allow update: if isAdmin()
-        && request.resource.data.selectedWorkers is int
-        && request.resource.data.selectedWorkers >= 0
-        && request.resource.data.maxWorkers is int
-        && request.resource.data.maxWorkers > 0
-        && request.resource.data.dailyRate is number
-        && request.resource.data.dailyRate > 0
-        && request.resource.data.selectedWorkers <= request.resource.data.maxWorkers;
+        && request.resource.data.selectedWorkers == 0
+        && request.resource.data.closedByAdmin == false
+        && request.resource.data.workDateEnd > request.time;
+      allow update: if (isAdmin()
+          && validJob(request.resource.data))
+        || (signedIn() && selectionRelease(jobId, request.auth.uid));
       allow delete: if isAdmin();
     }
 
@@ -63,16 +159,41 @@ service cloud.firestore {
         || (signedIn() && resource.data.userId == request.auth.uid);
       allow create: if signedIn()
         && request.resource.data.keys().hasOnly(['jobId', 'userId', 'status', 'createdAt', 'selectedAt'])
+        && request.resource.data.jobId is string
         && applicationId == request.resource.data.jobId + '_' + request.auth.uid
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.status == 'applied'
         && request.resource.data.selectedAt == null
         && request.resource.data.createdAt == request.time
         && job(request.resource.data.jobId).status == 'open'
+        && job(request.resource.data.jobId).workDateEnd > request.time
         && completeForJob(request.auth.uid, request.resource.data.jobId);
-      allow update: if isAdmin();
+      allow update: if isAdmin()
+        && request.resource.data.jobId == resource.data.jobId
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.keys().hasOnly(['jobId', 'userId', 'status', 'createdAt', 'selectedAt'])
+        && (request.resource.data.status == 'selected'
+          ? resource.data.status == 'applied'
+            && request.resource.data.selectedAt == request.time
+            && job(resource.data.jobId).status != 'finished'
+            && job(resource.data.jobId).closedByAdmin != true
+            && job(resource.data.jobId).workDateEnd > request.time
+            && job(resource.data.jobId).selectedWorkers < job(resource.data.jobId).maxWorkers
+            && getAfter(/databases/$(database)/documents/jobs/$(resource.data.jobId)).data.selectedWorkers
+              == get(/databases/$(database)/documents/jobs/$(resource.data.jobId)).data.selectedWorkers + 1
+            && getAfter(/databases/$(database)/documents/jobs/$(resource.data.jobId)).data.selectedWorkers
+              <= getAfter(/databases/$(database)/documents/jobs/$(resource.data.jobId)).data.maxWorkers
+          : request.resource.data.status == 'applied'
+            && resource.data.status == 'selected'
+            && request.resource.data.selectedAt == null
+            && selectionRelease(resource.data.jobId, resource.data.userId));
       allow delete: if isAdmin()
-        || (signedIn() && resource.data.userId == request.auth.uid);
+          && (resource.data.status != 'selected'
+            || selectionRelease(resource.data.jobId, resource.data.userId))
+        || (signedIn()
+          && resource.data.userId == request.auth.uid
+          && (resource.data.status != 'selected'
+            || selectionRelease(resource.data.jobId, request.auth.uid)));
     }
   }
 }

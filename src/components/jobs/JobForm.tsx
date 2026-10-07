@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { getMunicipalities, getStates } from "../../services/locationService";
 import { saveJob } from "../../services/jobService";
+import { localDateString } from "../../utils/formatters";
 import type { City } from "../../types/City";
 import type { Job } from "../../types/Job";
 
@@ -82,25 +83,38 @@ export function JobForm({
       );
       return;
     }
+    if (job && maxWorkers < job.selectedWorkers) {
+      setError(
+        `O limite não pode ser menor que as ${job.selectedWorkers} pessoas já selecionadas.`,
+      );
+      return;
+    }
+    if (form.date < localDateString() && form.status !== "finished") {
+      setError("Vagas com data passada precisam estar encerradas.");
+      return;
+    }
     if (form.endTime <= form.startTime) {
       setError("O horário final deve ser posterior ao horário inicial.");
       return;
     }
     setBusy(true);
     try {
-      const jobId = await saveJob({
-        title: form.title.trim(),
-        name: form.name.trim(),
-        description: form.description.trim(),
-        dailyRate: rate,
-        date: form.date,
-        startTime: form.startTime,
-        endTime: form.endTime,
-        city,
-        location: form.location.trim(),
-        maxWorkers,
-        status: form.status,
-      });
+      const jobId = await saveJob(
+        {
+          title: form.title.trim(),
+          name: form.name.trim(),
+          description: form.description.trim(),
+          dailyRate: rate,
+          date: form.date,
+          startTime: form.startTime,
+          endTime: form.endTime,
+          city,
+          location: form.location.trim(),
+          maxWorkers,
+          status: form.status,
+        },
+        job?.id,
+      );
       onSaved(jobId);
     } catch (reason) {
       setError(
@@ -174,6 +188,7 @@ export function JobForm({
           <input
             required
             type="date"
+            min={job ? undefined : localDateString()}
             value={form.date}
             onChange={(event) => change("date", event.target.value)}
           />

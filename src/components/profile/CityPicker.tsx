@@ -14,10 +14,12 @@ export function CityPicker({
 }) {
   const [states, setStates] = useState<StateOption[]>([]);
   const [municipalities, setMunicipalities] = useState<City[]>([]);
+  const [loadedUf, setLoadedUf] = useState("");
   const [uf, setUf] = useState("");
   const [cityId, setCityId] = useState("");
-  const [loadingCities, setLoadingCities] = useState(false);
   const [error, setError] = useState("");
+  const loadingCities = Boolean(uf && loadedUf !== uf);
+  const availableMunicipalities = loadedUf === uf ? municipalities : [];
 
   useEffect(() => {
     getStates()
@@ -32,26 +34,33 @@ export function CityPicker({
   }, []);
 
   useEffect(() => {
-    if (!uf) {
-      setMunicipalities([]);
-      return;
-    }
-    setLoadingCities(true);
-    setCityId("");
+    if (!uf) return;
+    let active = true;
     getMunicipalities(uf)
-      .then(setMunicipalities)
-      .catch((reason: unknown) =>
+      .then((result) => {
+        if (!active) return;
+        setMunicipalities(result);
+        setLoadedUf(uf);
+      })
+      .catch((reason: unknown) => {
+        if (!active) return;
+        setMunicipalities([]);
+        setLoadedUf(uf);
         setError(
           reason instanceof Error
             ? reason.message
             : "Erro ao carregar municípios.",
-        ),
-      )
-      .finally(() => setLoadingCities(false));
+        );
+      });
+    return () => {
+      active = false;
+    };
   }, [uf]);
 
   function addCity() {
-    const city = municipalities.find((item) => item.id === Number(cityId));
+    const city = availableMunicipalities.find(
+      (item) => item.id === Number(cityId),
+    );
     if (!city || cities.some((item) => item.id === city.id)) return;
     onChange([...cities, city]);
     setCityId("");
@@ -78,7 +87,11 @@ export function CityPicker({
       <div className="city-controls">
         <select
           value={uf}
-          onChange={(event) => setUf(event.target.value)}
+          onChange={(event) => {
+            setUf(event.target.value);
+            setCityId("");
+            setError("");
+          }}
           aria-label="Estado"
         >
           <option value="">Estado</option>
@@ -97,7 +110,7 @@ export function CityPicker({
           <option value="">
             {loadingCities ? "Carregando..." : "Município"}
           </option>
-          {municipalities
+          {availableMunicipalities
             .filter((city) => !cities.some((saved) => saved.id === city.id))
             .map((city) => (
               <option key={city.id} value={city.id}>

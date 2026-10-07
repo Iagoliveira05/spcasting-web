@@ -25,7 +25,6 @@ export function calculateAge(birthDate: string) {
   )
     age--;
   return age;
-  return age;
 }
 
 export function localDateString(date = new Date()) {

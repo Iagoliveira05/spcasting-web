@@ -21,9 +21,23 @@
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "jobId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "applications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "jobId", "order": "ASCENDING" },
         { "fieldPath": "status", "order": "ASCENDING" }
       ]
     }
   ],
-  "fieldOverrides": []
+  "fieldOverrides": [
+    {
+      "collectionGroup": "compositeChunks",
+      "fieldPath": "data",
+      "indexes": []
+    }
+  ]
 }

@@ -4,9 +4,10 @@ import {
   BriefcaseBusiness,
   CalendarDays,
   MapPin,
+  Search,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 import { getOpenJobs } from "../../services/jobService";
 import { formatCurrency, formatDate } from "../../utils/formatters";
 import type { Job } from "../../types/Job";
@@ -65,7 +66,7 @@ export function JobsPage() {
       </div>
       <div className="filter-row">
         <label className="search-field">
-          <span aria-hidden="true">⌕</span>
+          <Search size={17} />
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}

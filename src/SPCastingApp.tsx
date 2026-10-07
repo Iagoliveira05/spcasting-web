@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import {
   BrowserRouter,
   Link,
@@ -21,20 +21,65 @@ import {
 } from "lucide-react";
 import { AdminRoute } from "./routes/AdminRoute";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { AuthProvider } from "./contexts/AuthProvider";
+import { useAuth } from "./hooks/useAuth";
 import { logout } from "./services/authService";
-import { LoginPage } from "./pages/auth/Login";
-import { RegisterPage } from "./pages/auth/Register";
-import { JobsPage } from "./pages/freelancer/Jobs";
-import { JobDetailsPage } from "./pages/freelancer/JobDetails";
-import { MyApplicationsPage } from "./pages/freelancer/MyApplications";
-import { ProfilePage } from "./pages/freelancer/Profile";
-import { AdminDashboardPage } from "./pages/admin/Dashboard";
-import { AdminJobsPage } from "./pages/admin/Jobs";
-import { CreateJobPage } from "./pages/admin/CreateJob";
-import { CandidatesPage } from "./pages/admin/Candidates";
 import "./SPCastingApp.css";
 import "./SPCastingPages.css";
+
+const LoginPage = lazy(() =>
+  import("./pages/auth/Login").then((module) => ({ default: module.LoginPage })),
+);
+const RegisterPage = lazy(() =>
+  import("./pages/auth/Register").then((module) => ({
+    default: module.RegisterPage,
+  })),
+);
+const JobsPage = lazy(() =>
+  import("./pages/freelancer/Jobs").then((module) => ({
+    default: module.JobsPage,
+  })),
+);
+const JobDetailsPage = lazy(() =>
+  import("./pages/freelancer/JobDetails").then((module) => ({
+    default: module.JobDetailsPage,
+  })),
+);
+const MyApplicationsPage = lazy(() =>
+  import("./pages/freelancer/MyApplications").then((module) => ({
+    default: module.MyApplicationsPage,
+  })),
+);
+const ProfilePage = lazy(() =>
+  import("./pages/freelancer/Profile").then((module) => ({
+    default: module.ProfilePage,
+  })),
+);
+const AdminDashboardPage = lazy(() =>
+  import("./pages/admin/Dashboard").then((module) => ({
+    default: module.AdminDashboardPage,
+  })),
+);
+const AdminJobsPage = lazy(() =>
+  import("./pages/admin/Jobs").then((module) => ({
+    default: module.AdminJobsPage,
+  })),
+);
+const CreateJobPage = lazy(() =>
+  import("./pages/admin/CreateJob").then((module) => ({
+    default: module.CreateJobPage,
+  })),
+);
+const CandidatesPage = lazy(() =>
+  import("./pages/admin/Candidates").then((module) => ({
+    default: module.CandidatesPage,
+  })),
+);
+const CandidateProfilePage = lazy(() =>
+  import("./pages/admin/CandidateProfile").then((module) => ({
+    default: module.CandidateProfilePage,
+  })),
+);
 
 const freelancerNavigation = [
   { to: "/vagas", label: "Oportunidades", icon: BriefcaseBusiness },
@@ -156,7 +201,8 @@ function AppShell() {
           )}
         </header>
         {logoutError && <div className="inline-notice">{logoutError}</div>}
-        <Routes>
+        <Suspense fallback={<div className="route-loading">Carregando página...</div>}>
+          <Routes>
           <Route path="/" element={<Navigate to="/vagas" replace />} />
           <Route path="/vagas" element={<JobsPage />} />
           <Route path="/vagas/:jobId" element={<JobDetailsPage />} />
@@ -178,9 +224,14 @@ function AppShell() {
               path="/admin/vagas/:jobId/candidatos"
               element={<CandidatesPage />}
             />
+            <Route
+              path="/admin/candidatos/:uid"
+              element={<CandidateProfilePage />}
+            />
           </Route>
           <Route path="*" element={<Navigate to="/vagas" replace />} />
-        </Routes>
+          </Routes>
+        </Suspense>
         <footer className="page-footer">
           <span>SPCasting © 2026</span>
           <span>Oportunidades para quem faz acontecer.</span>

@@ -1,24 +1,9 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { onAuthStateChanged, type User } from "firebase/auth";
+import { AuthContext } from "./auth-context";
 import { auth, isFirebaseConfigured } from "../services/firebase";
 import { getUserProfile } from "../services/userService";
 import type { UserProfile } from "../types/User";
-
-interface AuthContextValue {
-  user: User | null;
-  profile: UserProfile | null;
-  loading: boolean;
-  configured: boolean;
-  refreshProfile: () => Promise<void>;
-}
-
-const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -26,10 +11,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(isFirebaseConfigured);
 
   useEffect(() => {
-    if (!auth) {
-      setLoading(false);
-      return;
-    }
+    if (!auth) return;
     return onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (!currentUser) {
@@ -65,11 +47,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context)
-    throw new Error("useAuth deve ser usado dentro de AuthProvider.");
-  return context;
 }
