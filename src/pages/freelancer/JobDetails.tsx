@@ -17,6 +17,7 @@ import { getJob } from "../../services/jobService";
 import { formatCurrency, formatDate } from "../../utils/formatters";
 import type { Job } from "../../types/Job";
 import { localDateString } from "../../utils/formatters";
+import { isProfileComplete } from "../../utils/profile";
 
 export function JobDetailsPage() {
   const { jobId = "" } = useParams();
@@ -58,18 +59,8 @@ export function JobDetailsPage() {
       setNotice("Entre na sua conta para se candidatar.");
       return;
     }
-    if (
-      !profile ||
-      !profile.name ||
-      !profile.phone ||
-      !profile.birthDate ||
-      !profile.cities.length
-    ) {
+    if (!isProfileComplete(profile)) {
       setError("Complete seu perfil antes de se candidatar.");
-      return;
-    }
-    if (!profile.compositePath) {
-      setError("Envie seu composite no perfil antes de se candidatar.");
       return;
     }
     if (job && !profile.cities.some((city) => city.id === job.city.id)) {

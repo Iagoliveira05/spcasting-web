@@ -23,6 +23,14 @@ service cloud.firestore {
       return path == ''
         || path.matches('firestore:' + userId + ':[A-Za-z0-9_-]+');
     }
+    function validProfilePhotoPath(userId, path) {
+      return path == ''
+        || path.matches('firestore-photo:' + userId + ':[A-Za-z0-9_-]+');
+    }
+    function validInstagram(value) {
+      return value is string
+        && (value == '' || value.matches('@?[A-Za-z0-9._]{1,30}'));
+    }
     function validCity(city) {
       return city is map
         && city.keys().hasOnly(['id', 'name', 'uf'])
@@ -57,6 +65,10 @@ service cloud.firestore {
       return candidate.name is string && candidate.name.size() > 1
         && candidate.phone is string && candidate.phone.size() >= 10
         && candidate.birthDate is string && candidate.birthDate.size() == 10
+        && validInstagram(candidate.instagram) && candidate.instagram.size() > 0
+        && candidate.profilePhotoPath is string
+        && validProfilePhotoPath(userId, candidate.profilePhotoPath)
+        && candidate.profilePhotoPath.size() > 0
         && candidate.compositePath is string && validCompositePath(userId, candidate.compositePath)
         && candidate.compositePath.size() > 0
         && candidate.cities is list && candidate.cities.hasAny([target.city]);
@@ -95,6 +107,9 @@ service cloud.firestore {
         && request.resource.data.email == request.auth.token.email
         && request.resource.data.compositePath is string
         && validCompositePath(userId, request.resource.data.compositePath)
+        && request.resource.data.profilePhotoPath is string
+        && validProfilePhotoPath(userId, request.resource.data.profilePhotoPath)
+        && validInstagram(request.resource.data.instagram)
         && (request.resource.data.role == 'freelancer'
           || (isBootstrapAdmin(userId)
             && request.resource.data.role == 'admin'));
@@ -103,6 +118,9 @@ service cloud.firestore {
         && request.resource.data.email == request.auth.token.email
         && request.resource.data.compositePath is string
         && validCompositePath(userId, request.resource.data.compositePath)
+        && request.resource.data.profilePhotoPath is string
+        && validProfilePhotoPath(userId, request.resource.data.profilePhotoPath)
+        && validInstagram(request.resource.data.instagram)
         && (request.resource.data.role == resource.data.role
           || (isBootstrapAdmin(userId)
             && resource.data.role == 'freelancer'
@@ -127,6 +145,33 @@ service cloud.firestore {
           && request.resource.data.index < request.resource.data.total
           && request.resource.data.contentType in [
             'application/pdf', 'image/jpeg', 'image/png', 'image/webp'
+          ]
+          && request.resource.data.data is bytes
+          && request.resource.data.data.size() > 0
+          && request.resource.data.data.size() <= 409600
+          && request.resource.data.createdAt == request.time;
+        allow update: if false;
+        allow delete: if isOwner(userId) || isAdmin();
+      }
+
+      match /profilePhotoChunks/{chunkId} {
+        allow get, list: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId)
+          && request.resource.data.keys().hasOnly([
+            'ownerId', 'version', 'index', 'total', 'contentType', 'data',
+            'createdAt'
+          ])
+          && request.resource.data.ownerId == userId
+          && request.resource.data.version is string
+          && request.resource.data.version.size() > 0
+          && request.resource.data.index is int
+          && request.resource.data.index >= 0
+          && request.resource.data.total is int
+          && request.resource.data.total > 0
+          && request.resource.data.total <= 13
+          && request.resource.data.index < request.resource.data.total
+          && request.resource.data.contentType in [
+            'image/jpeg', 'image/png', 'image/webp'
           ]
           && request.resource.data.data is bytes
           && request.resource.data.data.size() > 0

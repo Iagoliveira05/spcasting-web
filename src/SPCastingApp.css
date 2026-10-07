@@ -15,6 +15,7 @@
 body {
   margin: 0;
   min-width: 320px;
+  overflow-x: hidden;
 }
 button,
 input {
@@ -454,6 +455,7 @@ a {
   }
 }
 @media (max-width: 700px) {
+  .app-frame { min-height: 100dvh; }
   .sidebar {
     width: min(290px, calc(100vw - 55px));
     transform: translateX(-102%);
@@ -494,8 +496,13 @@ a {
     font-size: 10px;
   }
   .login-button {
+    max-width: 112px;
+    min-height: 40px;
     padding: 8px 9px;
     font-size: 10px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
   .content-wrap {
     padding-top: 30px;
@@ -561,7 +568,7 @@ a {
   }
   .mobile-nav {
     position: fixed;
-    z-index: 3;
+    z-index: 20;
     right: 0;
     bottom: 0;
     left: 0;
@@ -580,6 +587,8 @@ a {
     gap: 3px;
     color: #909790;
     font-size: 8px;
+    font-weight: 650;
+    -webkit-tap-highlight-color: transparent;
   }
   .mobile-nav .mobile-active {
     color: #b35235;
@@ -606,4 +615,6 @@ a {
   .breadcrumb span {
     margin: 0 5px;
   }
+  .breadcrumb { max-width: 125px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .login-button { max-width: 92px; }
 }

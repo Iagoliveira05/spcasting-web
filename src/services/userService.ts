@@ -25,6 +25,7 @@ export async function saveUserProfile(
     | "birthDate"
     | "instagram"
     | "cities"
+    | "profilePhotoPath"
     | "compositeUrl"
     | "compositePath"
     | "compositeType"

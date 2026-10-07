@@ -230,6 +230,10 @@ function AppShell() {
               path="/admin/candidatos/:uid"
               element={<CandidateProfilePage />}
             />
+            <Route
+              path="/admin/vagas/:jobId/candidatos/:uid"
+              element={<CandidateProfilePage />}
+            />
           </Route>
           <Route path="*" element={<Navigate to="/vagas" replace />} />
           </Routes>

@@ -49,6 +49,20 @@ Campos:
 - Instagram
 - cidades[]
 - composite
+- foto de perfil
+
+Todos os campos do perfil são obrigatórios para candidaturas, incluindo
+Instagram, ao menos uma cidade, composite e foto de perfil.
+
+Aceitar o usuário do Instagram com ou sem `@`, armazená-lo normalizado com
+`@` e exibi-lo como link clicável para o perfil.
+
+## Foto de perfil
+
+Formatos: JPG, JPEG, PNG e WEBP. Tamanho máximo: 5 MB.
+
+Armazenar em chunks no Cloud Firestore para manter compatibilidade com o
+plano gratuito. Um novo upload substitui o anterior.
 
 O freelancer pode cadastrar várias cidades.
 

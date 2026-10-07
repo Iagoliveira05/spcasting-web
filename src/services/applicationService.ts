@@ -12,6 +12,7 @@ import { db, isFirebaseConfigured } from "./firebase";
 import type { JobApplication } from "../types/Application";
 import type { UserProfile } from "../types/User";
 import { localDateString } from "../utils/formatters";
+import { isProfileComplete } from "../utils/profile";
 
 function requireDb() {
   if (!isFirebaseConfigured || !db)
@@ -43,15 +44,8 @@ export async function applyToJob(jobId: string, profile: UserProfile) {
     const jobData = job.data();
     if (jobData.date < localDateString())
       throw new Error("Esta vaga já foi encerrada.");
-    if (
-      !profile.name ||
-      !profile.phone ||
-      !profile.birthDate ||
-      profile.cities.length === 0
-    )
+    if (!isProfileComplete(profile))
       throw new Error("Complete seu perfil antes de se candidatar.");
-    if (!profile.compositePath)
-      throw new Error("Envie seu composite antes de se candidatar.");
     if (!profile.cities.some((city) => city.id === jobData.city?.id))
       throw new Error(
         "Adicione ao seu perfil a cidade desta vaga antes de se candidatar.",

@@ -12,6 +12,7 @@ export interface UserProfile {
   birthDate: string;
   instagram: string;
   cities: City[];
+  profilePhotoPath: string;
   compositeUrl: string;
   compositePath: string;
   compositeType: CompositeType | null;

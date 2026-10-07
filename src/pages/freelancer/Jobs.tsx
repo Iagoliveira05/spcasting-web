@@ -13,6 +13,7 @@ import { getUserApplications } from "../../services/applicationService";
 import { formatCurrency, formatDate } from "../../utils/formatters";
 import type { Job } from "../../types/Job";
 import type { ApplicationStatus } from "../../types/Application";
+import { isProfileComplete } from "../../utils/profile";
 import {
   DateSortButton,
   type DateSortOrder,
@@ -81,15 +82,8 @@ export function JobsPage() {
         allowed: false,
         status: "applied" as const,
       };
-    if (
-      !profile?.name ||
-      !profile.phone ||
-      !profile.birthDate ||
-      !profile.cities.length
-    )
+    if (!isProfileComplete(profile))
       return { label: "Complete seu perfil para participar", allowed: false };
-    if (!profile.compositePath)
-      return { label: "Envie seu composite para participar", allowed: false };
     if (!profile.cities.some((city) => city.id === job.city.id))
       return {
         label: `Indisponível: adicione ${job.city.name} ao perfil`,

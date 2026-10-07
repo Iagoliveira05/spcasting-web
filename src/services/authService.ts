@@ -10,6 +10,7 @@ import {
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { auth, db, isFirebaseConfigured } from "./firebase";
 import type { UserProfile } from "../types/User";
+import { isProfileComplete } from "../utils/profile";
 
 const adminUid = import.meta.env.VITE_FIREBASE_ADMIN_UID as string | undefined;
 
@@ -40,13 +41,7 @@ async function ensureFreelancerProfile(
       );
       return false;
     }
-    return (
-      !profile.name ||
-      !profile.phone ||
-      !profile.birthDate ||
-      !profile.cities?.length ||
-      !profile.compositePath
-    );
+    return !isProfileComplete({ uid: user.uid, ...profile } as UserProfile);
   }
 
   await setDoc(profileRef, {
@@ -57,6 +52,7 @@ async function ensureFreelancerProfile(
     birthDate: "",
     instagram: "",
     cities: [],
+    profilePhotoPath: "",
     compositeUrl: "",
     compositePath: "",
     compositeType: null,

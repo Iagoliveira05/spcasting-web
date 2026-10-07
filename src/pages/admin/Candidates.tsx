@@ -3,13 +3,14 @@ import {
   ArrowLeft,
   CircleStop,
   ExternalLink,
-  MessageCircle,
   Pencil,
-  UserRound,
+  Trash2,
   UserRoundCheck,
   UserRoundMinus,
 } from "lucide-react";
-import { Link, useParams } from "react-router-dom";
+import { ProfilePhoto } from "../../components/profile/ProfilePhoto";
+import { InstagramIcon, WhatsAppIcon } from "../../components/BrandIcons";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import {
   getJobApplications,
@@ -24,6 +25,7 @@ import { createWhatsAppLink } from "../../utils/whatsapp";
 import type { Job } from "../../types/Job";
 import type { JobApplication } from "../../types/Application";
 import type { UserProfile } from "../../types/User";
+import { instagramUrl } from "../../utils/instagram";
 
 interface Applicant {
   application: JobApplication;
@@ -32,6 +34,7 @@ interface Applicant {
 
 export function CandidatesPage() {
   const { jobId = "" } = useParams();
+  const navigate = useNavigate();
   const { configured } = useAuth();
   const [job, setJob] = useState<Job | null>(null);
   const [applicants, setApplicants] = useState<Applicant[]>([]);
@@ -178,13 +181,29 @@ export function CandidatesPage() {
   }) => {
     const profile = candidate.profile;
     if (!profile) return null;
+    const profilePath = `/admin/vagas/${jobId}/candidatos/${profile.uid}`;
+    function openProfile() {
+      navigate(profilePath);
+    }
     return (
       <article
-        className={`candidate-card ${isSelected ? "candidate-selected" : ""}`}
+        className={`candidate-card candidate-card-clickable ${isSelected ? "candidate-selected" : ""}`}
+        role="link"
+        tabIndex={0}
+        aria-label={`Abrir perfil de ${profile.name}`}
+        onClick={(event) => {
+          if ((event.target as HTMLElement).closest("a, button")) return;
+          openProfile();
+        }}
+        onKeyDown={(event) => {
+          if (event.target !== event.currentTarget) return;
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openProfile();
+          }
+        }}
       >
-        <div className="candidate-avatar">
-          <UserRound size={21} />
-        </div>
+        <ProfilePhoto path={profile.profilePhotoPath} name={profile.name} className="candidate-avatar" />
         <div className="candidate-content">
           <div className="candidate-title">
             <div>
@@ -206,12 +225,19 @@ export function CandidatesPage() {
           </div>
           <div className="candidate-details">
             <span>{profile.phone}</span>
-            <span>{profile.instagram || "Instagram não informado"}</span>
+            {profile.instagram ? (
+              <a href={instagramUrl(profile.instagram)} target="_blank" rel="noreferrer">
+                <InstagramIcon size={12} />
+                {profile.instagram.startsWith("@") ? profile.instagram : `@${profile.instagram}`}
+                <ExternalLink size={11} />
+              </a>
+            ) : <span>Instagram não informado</span>}
           </div>
-          <div className="candidate-actions">
-            <Link to={`/admin/candidatos/${profile.uid}`}>
-              <UserRound size={14} /> Perfil
-            </Link>
+          <div
+            className="candidate-actions"
+            onClick={(event) => event.stopPropagation()}
+            onKeyDown={(event) => event.stopPropagation()}
+          >
             <button
               disabled={!profile.compositePath}
               onClick={() => void viewComposite(profile.compositePath)}
@@ -227,7 +253,7 @@ export function CandidatesPage() {
               target="_blank"
               rel="noreferrer"
             >
-              <MessageCircle size={14} /> WhatsApp
+              <WhatsAppIcon size={14} /> WhatsApp
             </a>
             {isSelected ? (
               <button
@@ -235,7 +261,7 @@ export function CandidatesPage() {
                 disabled={busyId === candidate.application.id}
                 onClick={() => void select(candidate)}
               >
-                <UserRoundMinus size={14} /> Remover seleção
+                <UserRoundMinus size={15} /> Desfazer seleção
               </button>
             ) : (
               <button
@@ -246,7 +272,7 @@ export function CandidatesPage() {
                 }
                 onClick={() => void select(candidate)}
               >
-                <UserRoundCheck size={14} /> Selecionar
+                <UserRoundCheck size={15} /> Selecionar candidato
               </button>
             )}
             <button
@@ -254,7 +280,7 @@ export function CandidatesPage() {
               disabled={busyId === candidate.application.id}
               onClick={() => void remove(candidate)}
             >
-              Remover candidato
+              <Trash2 size={15} /> Remover candidato
             </button>
           </div>
         </div>

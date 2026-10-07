@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, Globe2, LockKeyhole } from "lucide-react";
+import { ArrowLeft, LockKeyhole } from "lucide-react";
+import { GoogleIcon } from "../../components/BrandIcons";
 import { loginWithEmail, loginWithGoogle } from "../../services/authService";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -114,7 +115,7 @@ export function LoginPage() {
           disabled={busy || !configured}
           onClick={() => void googleLogin()}
         >
-          <Globe2 size={17} /> Continuar com Google
+          <GoogleIcon size={17} /> Continuar com Google
         </button>
         <p className="auth-switch">
           Ainda não tem conta? <Link to="/cadastro">Criar cadastro</Link>

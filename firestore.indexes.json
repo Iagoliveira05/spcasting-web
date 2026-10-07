@@ -5,6 +5,11 @@
       "collectionGroup": "compositeChunks",
       "fieldPath": "data",
       "indexes": []
+    },
+    {
+      "collectionGroup": "profilePhotoChunks",
+      "fieldPath": "data",
+      "indexes": []
     }
   ]
 }

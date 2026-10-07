@@ -49,6 +49,10 @@ export function RegisterPage() {
         <p className="auth-intro">
           Crie seu acesso e encontre trabalhos temporários na sua região.
         </p>
+        <div className="required-fields-note">
+          <span>Obrigatórios</span>
+          Todos os campos abaixo são necessários para criar sua conta.
+        </div>
         {!configured && (
           <div className="inline-notice">
             Configure o Firebase no arquivo .env para ativar o cadastro.
@@ -56,7 +60,7 @@ export function RegisterPage() {
         )}
         <form onSubmit={(event) => void submit(event)}>
           <label className="form-field">
-            Nome completo
+            <span className="field-label"><span>Nome completo</span><small>Obrigatório</small></span>
             <input
               required
               minLength={2}
@@ -67,7 +71,7 @@ export function RegisterPage() {
             />
           </label>
           <label className="form-field">
-            E-mail
+            <span className="field-label"><span>E-mail</span><small>Obrigatório</small></span>
             <input
               required
               type="email"
@@ -78,7 +82,7 @@ export function RegisterPage() {
             />
           </label>
           <label className="form-field">
-            Senha
+            <span className="field-label"><span>Senha</span><small>Obrigatório</small></span>
             <input
               required
               type="password"
@@ -88,6 +92,7 @@ export function RegisterPage() {
               onChange={(event) => setPassword(event.target.value)}
               placeholder="Mínimo de 6 caracteres"
             />
+            <span className="field-hint">Use pelo menos 6 caracteres.</span>
           </label>
           {error && <p className="field-error">{error}</p>}
           <button
