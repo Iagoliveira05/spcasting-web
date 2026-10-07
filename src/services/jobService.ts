@@ -54,7 +54,8 @@ export async function getJob(jobId: string): Promise<Job | null> {
   const snapshot = await getDoc(doc(requireDb(), "jobs", jobId));
   if (!snapshot.exists()) return null;
   const job = { id: snapshot.id, ...snapshot.data() } as Job;
-  return job.date < new Date().toISOString().slice(0, 10) && job.status !== "finished"
+  return job.date < new Date().toISOString().slice(0, 10) &&
+    job.status !== "finished"
     ? { ...job, status: "finished" }
     : job;
 }
@@ -73,11 +74,12 @@ export async function saveJob(
       selectedWorkers: current?.exists()
         ? (current.data().selectedWorkers ?? 0)
         : 0,
-      closedByAdmin: job.status === "closed"
-        ? current?.exists()
-          ? (current.data().closedByAdmin ?? true)
-          : true
-        : false,
+      closedByAdmin:
+        job.status === "closed"
+          ? current?.exists()
+            ? (current.data().closedByAdmin ?? true)
+            : true
+          : false,
       ...(current?.exists()
         ? { createdAt: current.data().createdAt }
         : { createdAt: serverTimestamp() }),

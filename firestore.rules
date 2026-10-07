@@ -27,10 +27,9 @@ service cloud.firestore {
       allow get: if isOwner(userId) || isAdmin();
       allow list: if isAdmin();
       allow create: if isOwner(userId)
-          && request.resource.data.uid == userId
+        && request.resource.data.uid == userId
         && request.resource.data.role == 'freelancer'
         && request.resource.data.email == request.auth.token.email;
-      allow update: if isAdmin() || (isOwner(userId)
       allow update: if (isAdmin() || isOwner(userId))
         && request.resource.data.uid == userId
         && request.resource.data.role == resource.data.role
@@ -39,7 +38,8 @@ service cloud.firestore {
     }
 
     match /jobs/{jobId} {
-      allow read: if isAdmin() || (signedIn() && resource.data.status == 'open')
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.status == 'open')
         || (signedIn() && exists(/databases/$(database)/documents/applications/$(jobId + '_' + request.auth.uid)));
       allow create: if isAdmin()
         && request.resource.data.status == 'open'
@@ -48,8 +48,8 @@ service cloud.firestore {
         && request.resource.data.dailyRate is number
         && request.resource.data.dailyRate > 0;
       allow update: if isAdmin()
-          && request.resource.data.selectedWorkers is int
-          && request.resource.data.selectedWorkers >= 0
+        && request.resource.data.selectedWorkers is int
+        && request.resource.data.selectedWorkers >= 0
         && request.resource.data.maxWorkers is int
         && request.resource.data.maxWorkers > 0
         && request.resource.data.dailyRate is number
@@ -59,9 +59,10 @@ service cloud.firestore {
     }
 
     match /applications/{applicationId} {
-      allow get, list: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
+      allow get, list: if isAdmin()
+        || (signedIn() && resource.data.userId == request.auth.uid);
       allow create: if signedIn()
-          && request.resource.data.keys().hasOnly(['jobId', 'userId', 'status', 'createdAt', 'selectedAt'])
+        && request.resource.data.keys().hasOnly(['jobId', 'userId', 'status', 'createdAt', 'selectedAt'])
         && applicationId == request.resource.data.jobId + '_' + request.auth.uid
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.status == 'applied'
@@ -70,7 +71,8 @@ service cloud.firestore {
         && job(request.resource.data.jobId).status == 'open'
         && completeForJob(request.auth.uid, request.resource.data.jobId);
       allow update: if isAdmin();
-      allow delete: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
+      allow delete: if isAdmin()
+        || (signedIn() && resource.data.userId == request.auth.uid);
     }
   }
 }
