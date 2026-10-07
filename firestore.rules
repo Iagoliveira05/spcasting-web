@@ -1,0 +1,70 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isOwner(userId) { return signedIn() && request.auth.uid == userId; }
+    function isAdmin() {
+      return signedIn()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    function profile(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data;
+    }
+    function job(jobId) {
+      return get(/databases/$(database)/documents/jobs/$(jobId)).data;
+    }
+    function completeForJob(userId, jobId) {
+      let candidate = profile(userId);
+      let target = job(jobId);
+      return candidate.name is string && candidate.name.size() > 1
+        && candidate.phone is string && candidate.phone.size() >= 10
+        && candidate.birthDate is string && candidate.birthDate.size() == 10
+        && candidate.compositePath is string && candidate.compositePath.size() > 0
+        && candidate.cities is list && candidate.cities.hasAny([target.city]);
+    }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isOwner(userId)
+        && request.resource.data.role == 'freelancer'
+        && request.resource.data.email == request.auth.token.email;
+      allow update: if isAdmin() || (isOwner(userId)
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.email == request.auth.token.email);
+      allow delete: if false;
+    }
+
+    match /jobs/{jobId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.status == 'open')
+        || (signedIn() && exists(/databases/$(database)/documents/applications/$(jobId + '_' + request.auth.uid)));
+      allow create: if isAdmin()
+        && request.resource.data.status == 'open'
+        && request.resource.data.maxWorkers is int
+        && request.resource.data.maxWorkers > 0
+        && request.resource.data.dailyRate is number
+        && request.resource.data.dailyRate > 0;
+      allow update: if isAdmin()
+        && request.resource.data.maxWorkers is int
+        && request.resource.data.maxWorkers > 0
+        && request.resource.data.dailyRate is number
+        && request.resource.data.dailyRate > 0
+        && request.resource.data.selectedWorkers <= request.resource.data.maxWorkers;
+      allow delete: if isAdmin();
+    }
+
+    match /applications/{applicationId} {
+      allow get, list: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
+      allow create: if signedIn()
+        && applicationId == request.resource.data.jobId + '_' + request.auth.uid
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'applied'
+        && request.resource.data.selectedAt == null
+        && request.resource.data.createdAt == request.time
+        && job(request.resource.data.jobId).status == 'open'
+        && completeForJob(request.auth.uid, request.resource.data.jobId);
+      allow update: if isAdmin();
+      allow delete: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
+    }
+  }
+}
