@@ -1,46 +1,93 @@
-import { useState, type ReactNode } from "react";
-import { BrowserRouter, NavLink, Route, Routes } from "react-router-dom";
+import { useState } from "react";
+import {
+  BrowserRouter,
+  Link,
+  Navigate,
+  NavLink,
+  Route,
+  Routes,
+  useLocation,
+} from "react-router-dom";
 import {
   ArrowRight,
   BriefcaseBusiness,
-  CalendarDays,
-  CircleUserRound,
   ClipboardList,
+  CircleUserRound,
+  LayoutDashboard,
+  LogOut,
   Menu,
-  Search,
-  Sparkles,
+  Plus,
   X,
 } from "lucide-react";
+import { AdminRoute } from "./routes/AdminRoute";
+import { ProtectedRoute } from "./routes/ProtectedRoute";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { logout } from "./services/authService";
+import { LoginPage } from "./pages/auth/Login";
+import { RegisterPage } from "./pages/auth/Register";
+import { JobsPage } from "./pages/freelancer/Jobs";
+import { JobDetailsPage } from "./pages/freelancer/JobDetails";
+import { MyApplicationsPage } from "./pages/freelancer/MyApplications";
+import { ProfilePage } from "./pages/freelancer/Profile";
+import { AdminDashboardPage } from "./pages/admin/Dashboard";
+import { AdminJobsPage } from "./pages/admin/Jobs";
+import { CreateJobPage } from "./pages/admin/CreateJob";
+import { CandidatesPage } from "./pages/admin/Candidates";
 import "./SPCastingApp.css";
+import "./SPCastingPages.css";
 
-const navigation = [
+const freelancerNavigation = [
   { to: "/vagas", label: "Oportunidades", icon: BriefcaseBusiness },
   { to: "/inscricoes", label: "Minhas inscrições", icon: ClipboardList },
   { to: "/perfil", label: "Meu perfil", icon: CircleUserRound },
 ];
+const adminNavigation = [
+  { to: "/admin", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/admin/vagas", label: "Vagas", icon: BriefcaseBusiness },
+  { to: "/admin/vagas/nova", label: "Criar vaga", icon: Plus },
+];
 
 function AppShell() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [logoutError, setLogoutError] = useState("");
+  const { user, profile, configured } = useAuth();
+  const location = useLocation();
+  const isAdminArea = location.pathname.startsWith("/admin");
+  const navigation = isAdminArea ? adminNavigation : freelancerNavigation;
+
+  async function handleLogout() {
+    try {
+      await logout();
+      setMenuOpen(false);
+    } catch (reason) {
+      setLogoutError(
+        reason instanceof Error ? reason.message : "Não foi possível sair.",
+      );
+    }
+  }
 
   return (
     <div className="app-frame">
       <aside className={`sidebar ${menuOpen ? "sidebar-open" : ""}`}>
-        <NavLink
+        <Link
           className="brand"
-          to="/vagas"
+          to={isAdminArea ? "/admin" : "/vagas"}
           onClick={() => setMenuOpen(false)}
         >
           <span className="brand-mark">SP</span>
           <span>
             SPCasting<small>REDE DE TALENTOS</small>
           </span>
-        </NavLink>
-        <div className="workspace-label">ÁREA DO FREELANCER</div>
+        </Link>
+        <div className="workspace-label">
+          {isAdminArea ? "AGÊNCIA SPCasting" : "ÁREA DO FREELANCER"}
+        </div>
         <nav className="side-nav" aria-label="Navegação principal">
           {navigation.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}
+              end={to === "/admin"}
               className={({ isActive }) =>
                 `nav-item ${isActive ? "active" : ""}`
               }
@@ -50,12 +97,28 @@ function AppShell() {
               {label}
             </NavLink>
           ))}
+          {!isAdminArea && profile?.role === "admin" && (
+            <NavLink to="/admin" className="nav-item">
+              <LayoutDashboard size={18} />
+              Painel administrativo
+            </NavLink>
+          )}
         </nav>
         <div className="sidebar-bottom">
-          <span className="online-dot" /> Plataforma em configuração
-          <NavLink to="/login" className="admin-link">
-            Acesso administrativo <ArrowRight size={15} />
-          </NavLink>
+          <span className={`online-dot ${configured ? "connected-dot" : ""}`} />
+          {configured ? "Firebase conectado" : "Firebase não configurado"}
+          {user ? (
+            <button
+              className="admin-link sidebar-logout"
+              onClick={() => void handleLogout()}
+            >
+              Sair da conta <LogOut size={15} />
+            </button>
+          ) : (
+            <NavLink to="/login" className="admin-link">
+              Entrar na plataforma <ArrowRight size={15} />
+            </NavLink>
+          )}
         </div>
       </aside>
 
@@ -76,40 +139,47 @@ function AppShell() {
             {menuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
           <div className="breadcrumb">
-            SPCasting <span>/</span> <strong>Oportunidades</strong>
+            SPCasting <span>/</span>{" "}
+            <strong>{isAdminArea ? "Administração" : "Oportunidades"}</strong>
           </div>
-          <NavLink to="/login" className="login-button">
-            Entrar <ArrowRight size={16} />
-          </NavLink>
+          {user ? (
+            <button
+              className="login-button"
+              onClick={() => void handleLogout()}
+            >
+              {profile?.name?.split(" ")[0] || "Sair"} <LogOut size={15} />
+            </button>
+          ) : (
+            <NavLink to="/login" className="login-button">
+              Entrar <ArrowRight size={16} />
+            </NavLink>
+          )}
         </header>
+        {logoutError && <div className="inline-notice">{logoutError}</div>}
         <Routes>
-          <Route path="/" element={<Opportunities />} />
-          <Route path="/vagas" element={<Opportunities />} />
-          <Route
-            path="/inscricoes"
-            element={
-              <PlaceholderPage
-                title="Minhas inscrições"
-                icon={<CalendarDays />}
-              />
-            }
-          />
-          <Route
-            path="/perfil"
-            element={
-              <PlaceholderPage title="Meu perfil" icon={<CircleUserRound />} />
-            }
-          />
-          <Route
-            path="/login"
-            element={
-              <PlaceholderPage
-                title="Acesse sua conta"
-                icon={<CircleUserRound />}
-              />
-            }
-          />
-          <Route path="*" element={<Opportunities />} />
+          <Route path="/" element={<Navigate to="/vagas" replace />} />
+          <Route path="/vagas" element={<JobsPage />} />
+          <Route path="/vagas/:jobId" element={<JobDetailsPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/cadastro" element={<RegisterPage />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/inscricoes" element={<MyApplicationsPage />} />
+            <Route path="/perfil" element={<ProfilePage />} />
+          </Route>
+          <Route element={<AdminRoute />}>
+            <Route path="/admin" element={<AdminDashboardPage />} />
+            <Route path="/admin/vagas" element={<AdminJobsPage />} />
+            <Route path="/admin/vagas/nova" element={<CreateJobPage />} />
+            <Route
+              path="/admin/vagas/:jobId/editar"
+              element={<CreateJobPage edit />}
+            />
+            <Route
+              path="/admin/vagas/:jobId/candidatos"
+              element={<CandidatesPage />}
+            />
+          </Route>
+          <Route path="*" element={<Navigate to="/vagas" replace />} />
         </Routes>
         <footer className="page-footer">
           <span>SPCasting © 2026</span>
@@ -121,6 +191,7 @@ function AppShell() {
           <NavLink
             key={to}
             to={to}
+            end={to === "/admin"}
             aria-label={label}
             className={({ isActive }) => (isActive ? "mobile-active" : "")}
           >
@@ -133,115 +204,12 @@ function AppShell() {
   );
 }
 
-function Opportunities() {
-  const [search, setSearch] = useState("");
-
-  return (
-    <section className="content-wrap">
-      <div className="page-heading">
-        <div>
-          <div className="eyebrow">
-            <Sparkles size={14} /> TRABALHOS TEMPORÁRIOS
-          </div>
-          <h1>
-            Seu próximo trabalho
-            <br className="desktop-break" /> começa por aqui<span>.</span>
-          </h1>
-          <p>Encontre oportunidades de eventos que combinam com você.</p>
-        </div>
-        <div className="heading-art" aria-hidden="true">
-          <div className="art-circle">
-            <BriefcaseBusiness size={34} strokeWidth={1.4} />
-          </div>
-          <span className="art-stamp">
-            SP
-            <br />
-            CASTING
-          </span>
-        </div>
-      </div>
-
-      <div className="filter-row">
-        <label className="search-field">
-          <Search size={18} />
-          <input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Busque por vaga ou cidade"
-            aria-label="Buscar vagas"
-          />
-        </label>
-        <span className="results-count">0 oportunidades</span>
-      </div>
-
-      <div className="setup-notice">
-        <span className="notice-mark">i</span>
-        <div>
-          <strong>Conexão com Firebase pendente</strong>
-          <p>
-            Configure as variáveis de ambiente para carregar vagas e ativar os
-            recursos da plataforma.
-          </p>
-        </div>
-        <ArrowRight className="notice-arrow" size={18} />
-      </div>
-
-      <div className="empty-state">
-        <div className="empty-icon">
-          <BriefcaseBusiness size={23} />
-        </div>
-        <h2>
-          {search
-            ? "Nenhum resultado encontrado"
-            : "Nenhuma oportunidade por enquanto"}
-        </h2>
-        <p>
-          {search
-            ? "Tente buscar por outro termo."
-            : "As novas vagas aparecerão aqui assim que forem publicadas pela SPCasting."}
-        </p>
-        {search && (
-          <button className="text-button" onClick={() => setSearch("")}>
-            Limpar busca <ArrowRight size={15} />
-          </button>
-        )}
-      </div>
-      <div className="bottom-note">
-        <span className="note-line" />
-        <span>Novas oportunidades, direto para você.</span>
-        <span className="note-line" />
-      </div>
-    </section>
-  );
-}
-
-function PlaceholderPage({ title, icon }: { title: string; icon: ReactNode }) {
-  return (
-    <section className="content-wrap subpage">
-      <div className="eyebrow">SPCASTING</div>
-      <h1>
-        {title}
-        <span>.</span>
-      </h1>
-      <div className="setup-notice">
-        <span className="notice-mark">i</span>
-        <div>
-          <strong>Área pronta para conectar</strong>
-          <p>
-            Esta página será habilitada após configurar o Firebase e concluir a
-            autenticação.
-          </p>
-        </div>
-      </div>
-      <div className="subpage-icon">{icon}</div>
-    </section>
-  );
-}
-
 export default function SPCastingApp() {
   return (
-    <BrowserRouter>
-      <AppShell />
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <AppShell />
+      </BrowserRouter>
+    </AuthProvider>
   );
 }

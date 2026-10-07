@@ -2,6 +2,16 @@
   "indexes": [
     {
       "collectionGroup": "applications",
+          {
+            "collectionGroup": "jobs",
+            "queryScope": "COLLECTION",
+            "fields": [
+              { "fieldPath": "status", "order": "ASCENDING" },
+              { "fieldPath": "date", "order": "ASCENDING" }
+            ]
+          },
+          {
+            "collectionGroup": "applications",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "userId", "order": "ASCENDING" },
