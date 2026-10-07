@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
-import { BriefcaseBusiness, CalendarDays, MapPin, Trash2 } from "lucide-react";
+import {
+  ArrowUpRight,
+  BadgeCheck,
+  BriefcaseBusiness,
+  CalendarDays,
+  MapPin,
+  Timer,
+  XCircle,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import {
@@ -94,41 +102,58 @@ export function MyApplicationsPage() {
                   className={`application-card ${application.status === "selected" ? "selected-card" : ""}`}
                   key={application.id}
                 >
-                  <div className="application-icon">
-                    <BriefcaseBusiness size={20} />
-                  </div>
-                  <div className="application-info">
-                    <span
-                      className={`status-pill ${application.status === "selected" ? "status-selected" : ""}`}
-                    >
-                      {application.status === "selected"
-                        ? "Selecionado"
-                        : "Inscrito"}
-                    </span>
-                    <h2>
-                      {job.title} — {job.name}
-                    </h2>
-                    <div className="job-meta">
-                      <span>
-                        <MapPin size={14} />
-                        {job.city.name} - {job.city.uf}
-                      </span>
-                      <span>
-                        <CalendarDays size={14} />
-                        {formatDate(job.date)}
-                      </span>
+                  <Link
+                    className="application-card-link"
+                    to={`/vagas/${job.id}`}
+                    aria-label={`Ver detalhes da vaga ${job.name}`}
+                  >
+                    <div className="application-icon">
+                      <BriefcaseBusiness size={20} />
                     </div>
-                  </div>
-                  {application.status === "applied" && (
-                    <button
-                      className="icon-action danger-action"
-                      title="Cancelar candidatura"
-                      aria-label="Cancelar candidatura"
-                      onClick={() => void cancel(application)}
-                    >
-                      <Trash2 size={17} />
-                    </button>
-                  )}
+                    <div className="application-info">
+                      <span
+                        className={`application-status-banner ${application.status === "selected" ? "application-approved" : "application-pending"}`}
+                      >
+                        {application.status === "selected" ? (
+                          <BadgeCheck size={15} />
+                        ) : (
+                          <Timer size={15} />
+                        )}
+                        <span>
+                          <strong>
+                            {application.status === "selected"
+                              ? "Aprovado para a ação"
+                              : "Inscrição enviada"}
+                          </strong>
+                          <small>
+                            {application.status === "selected"
+                              ? "Sua participação foi confirmada pela SPCasting"
+                              : "Aguardando aprovação da SPCasting"}
+                          </small>
+                        </span>
+                      </span>
+                      <h2>
+                        {job.title} — {job.name}
+                      </h2>
+                      <div className="job-meta">
+                        <span>
+                          <MapPin size={14} />
+                          {job.city.name} - {job.city.uf}
+                        </span>
+                        <span>
+                          <CalendarDays size={14} />
+                          {formatDate(job.date)}
+                        </span>
+                      </div>
+                    </div>
+                    <ArrowUpRight className="application-arrow" size={17} />
+                  </Link>
+                  <button
+                    className="withdraw-button"
+                    onClick={() => void cancel(application)}
+                  >
+                    <XCircle size={15} /> Desistir
+                  </button>
                 </article>
               ),
           )}

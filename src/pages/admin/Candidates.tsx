@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import {
   ArrowLeft,
+  CircleStop,
   ExternalLink,
   MessageCircle,
+  Pencil,
   UserRound,
   UserRoundCheck,
   UserRoundMinus,
@@ -14,7 +16,7 @@ import {
   removeApplication,
   setApplicationSelected,
 } from "../../services/applicationService";
-import { getJob } from "../../services/jobService";
+import { getJob, setJobStatus } from "../../services/jobService";
 import { openComposite } from "../../services/compositeService";
 import { getUserProfile } from "../../services/userService";
 import { calculateAge, formatDate } from "../../utils/formatters";
@@ -142,6 +144,25 @@ export function CandidatesPage() {
     }
   }
 
+  async function finishJob() {
+    if (
+      !job ||
+      !window.confirm(`Tem certeza que deseja encerrar a vaga "${job.name}"?`)
+    )
+      return;
+    setError("");
+    try {
+      await setJobStatus(job.id, "finished");
+      await refresh();
+    } catch (reason) {
+      setError(
+        reason instanceof Error
+          ? reason.message
+          : "Não foi possível encerrar a vaga.",
+      );
+    }
+  }
+
   const pending = applicants.filter(
     (item) => item.application.status === "applied",
   );
@@ -264,11 +285,23 @@ export function CandidatesPage() {
                 {formatDate(job.date)}
               </p>
             </div>
-            <div className="selected-count">
-              Selecionados{" "}
-              <strong>
-                {job.selectedWorkers || 0} / {job.maxWorkers}
-              </strong>
+            <div className="job-management-summary">
+              <div className="selected-count">
+                Selecionados{" "}
+                <strong>
+                  {job.selectedWorkers || 0} / {job.maxWorkers}
+                </strong>
+              </div>
+              <div className="job-management-actions">
+                <Link to={`/admin/vagas/${job.id}/editar`}>
+                  <Pencil size={14} /> Editar vaga
+                </Link>
+                {job.status !== "finished" && (
+                  <button type="button" onClick={() => void finishJob()}>
+                    <CircleStop size={14} /> Encerrar vaga
+                  </button>
+                )}
+              </div>
             </div>
           </div>
           {error && <div className="inline-notice">{error}</div>}

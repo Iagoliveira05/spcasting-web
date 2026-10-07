@@ -32,10 +32,11 @@ export async function getOpenJobs(): Promise<Job[]> {
   const snapshot = await getDocs(query(
     collection(requireDb(), 'jobs'),
     where('status', '==', 'open'),
-    where('date', '>=', today),
-    orderBy('date', 'asc'),
   ))
-  return snapshot.docs.map((item) => withEffectiveStatus(item.id, item.data()))
+  return snapshot.docs
+    .map((item) => withEffectiveStatus(item.id, item.data()))
+    .filter((job) => job.date >= today)
+    .sort((left, right) => left.date.localeCompare(right.date))
 }
 
 export async function getAllJobs(): Promise<Job[]> {

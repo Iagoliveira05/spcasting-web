@@ -68,66 +68,95 @@ export function CityPicker({
 
   return (
     <div className="city-picker">
-      <div className="city-list">
-        {cities.map((city) => (
-          <span className="city-chip" key={city.id}>
-            {city.name} - {city.uf}
-            <button
-              type="button"
-              aria-label={`Remover ${city.name}`}
-              onClick={() =>
-                onChange(cities.filter((item) => item.id !== city.id))
-              }
-            >
-              <X size={13} />
-            </button>
-          </span>
-        ))}
+      <div className="city-picker-summary">
+        <strong>Localidades adicionadas</strong>
+        <span>
+          {cities.length} {cities.length === 1 ? "cidade" : "cidades"}
+        </span>
       </div>
+      <div className="city-list">
+        {cities.length ? (
+          cities.map((city) => (
+            <span className="city-chip" key={city.id}>
+              {city.name} - {city.uf}
+              <button
+                type="button"
+                aria-label={`Remover ${city.name}`}
+                onClick={() =>
+                  onChange(cities.filter((item) => item.id !== city.id))
+                }
+              >
+                <X size={13} />
+              </button>
+            </span>
+          ))
+        ) : (
+          <p className="city-empty">
+            Nenhuma cidade adicionada. Escolha abaixo onde você pode trabalhar.
+          </p>
+        )}
+      </div>
+      <p className="city-picker-instruction">
+        Selecione o estado e o município e depois confirme em
+        <strong> Adicionar cidade</strong>.
+      </p>
       <div className="city-controls">
-        <select
-          value={uf}
-          onChange={(event) => {
-            setUf(event.target.value);
-            setCityId("");
-            setError("");
-          }}
-          aria-label="Estado"
-        >
-          <option value="">Estado</option>
-          {states.map((state) => (
-            <option key={state.id} value={state.sigla}>
-              {state.nome} ({state.sigla})
-            </option>
-          ))}
-        </select>
-        <select
-          value={cityId}
-          onChange={(event) => setCityId(event.target.value)}
-          disabled={!uf || loadingCities}
-          aria-label="Município"
-        >
-          <option value="">
-            {loadingCities ? "Carregando..." : "Município"}
-          </option>
-          {availableMunicipalities
-            .filter((city) => !cities.some((saved) => saved.id === city.id))
-            .map((city) => (
-              <option key={city.id} value={city.id}>
-                {city.name}
+        <label className="city-control-field">
+          <span>1. Escolha o estado</span>
+          <select
+            value={uf}
+            onChange={(event) => {
+              setUf(event.target.value);
+              setCityId("");
+              setError("");
+            }}
+          >
+            <option value="">Selecione o estado</option>
+            {states.map((state) => (
+              <option key={state.id} value={state.sigla}>
+                {state.nome} ({state.sigla})
               </option>
             ))}
-        </select>
+          </select>
+        </label>
+        <label className="city-control-field">
+          <span>2. Escolha o município</span>
+          <select
+            value={cityId}
+            onChange={(event) => setCityId(event.target.value)}
+            disabled={!uf || loadingCities}
+          >
+            <option value="">
+              {loadingCities
+                ? "Carregando municípios..."
+                : uf
+                  ? "Selecione o município"
+                  : "Escolha o estado primeiro"}
+            </option>
+            {availableMunicipalities
+              .filter((city) => !cities.some((saved) => saved.id === city.id))
+              .map((city) => (
+                <option key={city.id} value={city.id}>
+                  {city.name}
+                </option>
+              ))}
+          </select>
+        </label>
         <button
           type="button"
           className="add-city"
           onClick={addCity}
           disabled={!cityId}
-          aria-label="Adicionar cidade"
         >
           <Plus size={17} />
+          Adicionar cidade
         </button>
       </div>
+      {cityId && (
+        <p className="city-action-hint">
+          Município selecionado. Clique em “Adicionar cidade” para confirmar.
+        </p>
+      )}
       {error && <p className="field-error">{error}</p>}
     </div>
   );

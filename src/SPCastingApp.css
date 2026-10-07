@@ -279,6 +279,7 @@ a {
 }
 .filter-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
@@ -312,6 +313,7 @@ a {
   color: #a2a7a1;
 }
 .results-count {
+  margin-left: auto;
   color: #8e958f;
   font-size: 10px;
 }
@@ -564,7 +566,7 @@ a {
     bottom: 0;
     left: 0;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
     padding: 8px 8px max(8px, env(safe-area-inset-bottom));
     border-top: 1px solid #e7e7e0;
     background: #fff;

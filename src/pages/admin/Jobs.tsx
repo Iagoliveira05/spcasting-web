@@ -2,33 +2,33 @@ import { useEffect, useState } from "react";
 import { ArrowUpRight, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-import { setJobStatus, getAllJobs } from "../../services/jobService";
+import { getAllJobs } from "../../services/jobService";
+import { getApplicationCountsByJob } from "../../services/applicationService";
 import { formatCurrency, formatDate } from "../../utils/formatters";
 import type { Job, JobStatus } from "../../types/Job";
+import {
+  DateSortButton,
+  type DateSortOrder,
+} from "../../components/jobs/DateSortButton";
 
 export function AdminJobsPage() {
   const { configured } = useAuth();
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [applicationCounts, setApplicationCounts] = useState<
+    Record<string, number>
+  >({});
   const [filter, setFilter] = useState<JobStatus | "all">("all");
+  const [sortOrder, setSortOrder] = useState<DateSortOrder>("nearest");
   const [loading, setLoading] = useState(configured);
   const [error, setError] = useState("");
 
-  async function refresh() {
-    if (!configured) return;
-    try {
-      setJobs(await getAllJobs());
-    } catch (reason) {
-      setError(
-        reason instanceof Error ? reason.message : "Erro ao carregar vagas.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
   useEffect(() => {
     if (!configured) return;
-    getAllJobs()
-      .then(setJobs)
+    Promise.all([getAllJobs(), getApplicationCountsByJob()])
+      .then(([jobList, counts]) => {
+        setJobs(jobList);
+        setApplicationCounts(counts);
+      })
       .catch((reason: unknown) =>
         setError(
           reason instanceof Error ? reason.message : "Erro ao carregar vagas.",
@@ -37,26 +37,13 @@ export function AdminJobsPage() {
       .finally(() => setLoading(false));
   }, [configured]);
 
-  async function finish(job: Job) {
-    if (
-      !window.confirm(`Tem certeza que deseja encerrar a vaga "${job.name}"?`)
-    )
-      return;
-    try {
-      await setJobStatus(job.id, "finished");
-      await refresh();
-    } catch (reason) {
-      setError(
-        reason instanceof Error
-          ? reason.message
-          : "Não foi possível encerrar a vaga.",
-      );
-    }
-  }
-
-  const visible = jobs.filter(
-    (job) => filter === "all" || job.status === filter,
-  );
+  const visible = jobs
+    .filter((job) => filter === "all" || job.status === filter)
+    .sort((left, right) =>
+      sortOrder === "nearest"
+        ? left.date.localeCompare(right.date)
+        : right.date.localeCompare(left.date),
+    );
   return (
     <section className="content-wrap admin-page">
       <div className="eyebrow">ADMINISTRAÇÃO</div>
@@ -71,23 +58,26 @@ export function AdminJobsPage() {
           <Plus size={16} /> Criar vaga
         </Link>
       </div>
-      <div className="status-tabs" role="group" aria-label="Filtrar vagas">
-        {(
+      <div className="admin-list-controls">
+        <div className="status-tabs" role="group" aria-label="Filtrar vagas">
+          {(
           [
             ["all", "Todas"],
             ["open", "Abertas"],
             ["closed", "Fechadas"],
             ["finished", "Encerradas"],
           ] as const
-        ).map(([key, label]) => (
-          <button
-            key={key}
-            className={filter === key ? "tab-active" : ""}
-            onClick={() => setFilter(key)}
-          >
-            {label}
-          </button>
-        ))}
+          ).map(([key, label]) => (
+            <button
+              key={key}
+              className={filter === key ? "tab-active" : ""}
+              onClick={() => setFilter(key)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <DateSortButton value={sortOrder} onChange={setSortOrder} />
       </div>
       {!configured && (
         <div className="setup-notice">
@@ -104,7 +94,12 @@ export function AdminJobsPage() {
       ) : visible.length ? (
         <div className="admin-job-list">
           {visible.map((job) => (
-            <article className="admin-job-card" key={job.id}>
+            <Link
+              className="admin-job-card"
+              key={job.id}
+              to={`/admin/vagas/${job.id}/candidatos`}
+              aria-label={`Abrir gestão da vaga ${job.name}`}
+            >
               <div className="admin-job-card-head">
                 <div>
                   <span className={`status-pill status-${job.status}`}>
@@ -126,23 +121,22 @@ export function AdminJobsPage() {
                 </strong>
               </div>
               <div className="admin-job-card-foot">
-                <span>
-                  Selecionados{" "}
-                  <strong>
-                    {job.selectedWorkers || 0} / {job.maxWorkers}
-                  </strong>
-                </span>
-                <div>
-                  <Link to={`/admin/vagas/${job.id}/candidatos`}>
-                    Candidatos <ArrowUpRight size={14} />
-                  </Link>
-                  <Link to={`/admin/vagas/${job.id}/editar`}>Editar</Link>
-                  {job.status !== "finished" && (
-                    <button onClick={() => void finish(job)}>Encerrar</button>
-                  )}
+                <div className="admin-job-counts">
+                  <span>
+                    Inscritos <strong>{applicationCounts[job.id] ?? 0}</strong>
+                  </span>
+                  <span>
+                    Selecionados{" "}
+                    <strong>
+                      {job.selectedWorkers || 0} / {job.maxWorkers}
+                    </strong>
+                  </span>
                 </div>
+                <span className="admin-card-open">
+                  Abrir gestão <ArrowUpRight size={14} />
+                </span>
               </div>
-            </article>
+            </Link>
           ))}
         </div>
       ) : (

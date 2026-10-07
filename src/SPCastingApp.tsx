@@ -10,6 +10,7 @@ import {
 } from "react-router-dom";
 import {
   ArrowRight,
+  ArrowLeft,
   BriefcaseBusiness,
   ClipboardList,
   CircleUserRound,
@@ -90,6 +91,7 @@ const adminNavigation = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { to: "/admin/vagas", label: "Vagas", icon: BriefcaseBusiness },
   { to: "/admin/vagas/nova", label: "Criar vaga", icon: Plus },
+  { to: "/vagas", label: "Ver oportunidades", icon: ArrowLeft },
 ];
 
 function AppShell() {

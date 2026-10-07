@@ -3,7 +3,6 @@ import {
   doc,
   getCountFromServer,
   getDocs,
-  orderBy,
   query,
   runTransaction,
   serverTimestamp,
@@ -74,12 +73,13 @@ export async function getUserApplications(
     query(
       collection(requireDb(), "applications"),
       where("userId", "==", userId),
-      orderBy("createdAt", "desc"),
     ),
   );
-  return snapshot.docs.map(
-    (item) => ({ id: item.id, ...item.data() }) as JobApplication,
-  );
+  return snapshot.docs
+    .map((item) => ({ id: item.id, ...item.data() }) as JobApplication)
+    .sort(
+      (left, right) => right.createdAt.toMillis() - left.createdAt.toMillis(),
+    );
 }
 
 export async function getJobApplications(
@@ -89,12 +89,13 @@ export async function getJobApplications(
     query(
       collection(requireDb(), "applications"),
       where("jobId", "==", jobId),
-      orderBy("createdAt", "asc"),
     ),
   );
-  return snapshot.docs.map(
-    (item) => ({ id: item.id, ...item.data() }) as JobApplication,
-  );
+  return snapshot.docs
+    .map((item) => ({ id: item.id, ...item.data() }) as JobApplication)
+    .sort(
+      (left, right) => left.createdAt.toMillis() - right.createdAt.toMillis(),
+    );
 }
 
 export async function cancelApplication(jobId: string, userId: string) {
@@ -199,4 +200,15 @@ export async function countApplications() {
     collection(requireDb(), "applications"),
   );
   return snapshot.data().count;
+}
+
+export async function getApplicationCountsByJob(): Promise<
+  Record<string, number>
+> {
+  const snapshot = await getDocs(collection(requireDb(), "applications"));
+  return snapshot.docs.reduce<Record<string, number>>((counts, item) => {
+    const jobId = item.data().jobId as string;
+    counts[jobId] = (counts[jobId] ?? 0) + 1;
+    return counts;
+  }, {});
 }

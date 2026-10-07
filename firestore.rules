@@ -139,8 +139,7 @@ service cloud.firestore {
 
     match /jobs/{jobId} {
       allow read: if isAdmin()
-        || (resource.data.status == 'open'
-          && resource.data.workDateEnd > request.time)
+        || resource.data.status == 'open'
         || (signedIn() && exists(/databases/$(database)/documents/applications/$(jobId + '_' + request.auth.uid)));
       allow create: if isAdmin()
         && validJob(request.resource.data)
@@ -155,7 +154,10 @@ service cloud.firestore {
     }
 
     match /applications/{applicationId} {
-      allow get, list: if isAdmin()
+      allow get: if isAdmin()
+        || (signedIn()
+          && applicationId.matches('.*_' + request.auth.uid));
+      allow list: if isAdmin()
         || (signedIn() && resource.data.userId == request.auth.uid);
       allow create: if signedIn()
         && request.resource.data.keys().hasOnly(['jobId', 'userId', 'status', 'createdAt', 'selectedAt'])

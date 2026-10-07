@@ -47,8 +47,8 @@ Não crie documento admin por formulário e nunca inclua credenciais de conta de
 ## Arquivos do Firebase
 
 - `firestore.rules`: perfis privados, vagas publicáveis, candidatura própria e alterações administrativas.
-- `firestore.indexes.json`: índices para oportunidades, inscrições e isenção
-  de índice para os dados binários dos composites.
+- `firestore.indexes.json`: isenção de índice para os dados binários dos
+  composites; as listagens não dependem de índices compostos.
 
 Os composites são divididos em documentos de até 400 KiB na subcoleção
 `users/{uid}/compositeChunks`. O arquivo continua privado, pode ter até 10 MB e
