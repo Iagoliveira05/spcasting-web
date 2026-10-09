@@ -15,6 +15,7 @@ import {
   ClipboardList,
   CircleUserRound,
   LayoutDashboard,
+  Info,
   LogOut,
   Menu,
   Plus,
@@ -25,6 +26,7 @@ import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { AuthProvider } from "./contexts/AuthProvider";
 import { useAuth } from "./hooks/useAuth";
 import { logout } from "./services/authService";
+import logoImage from "./assets/logo-enhanced.png";
 import "./SPCastingApp.css";
 import "./SPCastingPages.css";
 
@@ -81,9 +83,13 @@ const CandidateProfilePage = lazy(() =>
     default: module.CandidateProfilePage,
   })),
 );
+const AboutPage = lazy(() =>
+  import("./pages/About").then((module) => ({ default: module.AboutPage })),
+);
 
 const freelancerNavigation = [
   { to: "/vagas", label: "Oportunidades", icon: BriefcaseBusiness },
+  { to: "/sobre", label: "Sobre", icon: Info },
   { to: "/inscricoes", label: "Minhas inscrições", icon: ClipboardList },
   { to: "/perfil", label: "Meu perfil", icon: CircleUserRound },
 ];
@@ -100,6 +106,7 @@ function AppShell() {
   const { user, profile, configured } = useAuth();
   const location = useLocation();
   const isAdminArea = location.pathname.startsWith("/admin");
+  const isAboutPage = location.pathname === "/sobre";
   const navigation = isAdminArea ? adminNavigation : freelancerNavigation;
 
   async function handleLogout() {
@@ -121,7 +128,7 @@ function AppShell() {
           to={isAdminArea ? "/admin" : "/vagas"}
           onClick={() => setMenuOpen(false)}
         >
-          <span className="brand-mark">SP</span>
+          <span className="brand-mark"><img src={logoImage} alt="" /></span>
           <span>
             SPCasting<small>REDE DE TALENTOS</small>
           </span>
@@ -187,7 +194,7 @@ function AppShell() {
           </button>
           <div className="breadcrumb">
             SPCasting <span>/</span>{" "}
-            <strong>{isAdminArea ? "Administração" : "Oportunidades"}</strong>
+            <strong>{isAdminArea ? "Administração" : isAboutPage ? "Sobre" : "Oportunidades"}</strong>
           </div>
           {user ? (
             <button
@@ -207,6 +214,7 @@ function AppShell() {
           <Routes>
           <Route path="/" element={<Navigate to="/vagas" replace />} />
           <Route path="/vagas" element={<JobsPage />} />
+          <Route path="/sobre" element={<AboutPage />} />
           <Route path="/vagas/:jobId" element={<JobDetailsPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/cadastro" element={<RegisterPage />} />
