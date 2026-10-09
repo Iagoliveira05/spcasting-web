@@ -1,8 +1,8 @@
 import { ArrowRight, BriefcaseBusiness, HeartHandshake, Sparkles, UsersRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import { InstagramIcon } from "../components/BrandIcons";
-import actionImage from "../assets/acao-99-food-bags-enhanced.png";
-import teamImage from "../assets/equipe-reunida-enhanced.png";
+import actionImage from "../assets/acao-99-food-bags-brilho.png";
+import teamImage from "../assets/equipe-reunida-brilho.png";
 import promoterImage from "../assets/promotora-acao-vinho-enhanced.png";
 import logoImage from "../assets/logo-enhanced.png";
 
@@ -52,9 +52,18 @@ export function AboutPage() {
           <a href="https://www.instagram.com/s.pcasting/" target="_blank" rel="noreferrer">Seguir no Instagram <ArrowRight size={16} /></a>
         </div>
         <a className="about-gallery-grid" href="https://www.instagram.com/s.pcasting/" target="_blank" rel="noreferrer" aria-label="Visitar o Instagram da SPCasting">
-          <div className="gallery-shot gallery-shot-one"><img src={actionImage} alt="Equipe da SPCasting em uma ação da 99 Food" loading="lazy" /></div>
-          <div className="gallery-shot gallery-shot-two"><img src={promoterImage} alt="Promotora da SPCasting em ação de degustação" loading="lazy" /></div>
-          <div className="gallery-shot gallery-shot-three"><img src={teamImage} alt="Equipe da SPCasting durante uma produção" loading="lazy" /></div>
+          <div className="gallery-shot gallery-shot-one">
+            <img src={actionImage} alt="Equipe da SPCasting em uma ação da 99 Food" loading="lazy" />
+            <span><small>ATIVAÇÃO DE MARCA</small>Equipe em ação</span>
+          </div>
+          <div className="gallery-shot gallery-shot-two">
+            <img src={promoterImage} alt="Promotora da SPCasting em ação de degustação" loading="lazy" />
+            <span><small>EXPERIÊNCIA</small>Presença que conecta</span>
+          </div>
+          <div className="gallery-shot gallery-shot-three">
+            <img src={teamImage} alt="Equipe da SPCasting durante uma produção" loading="lazy" />
+            <span><small>SPCASTING</small>Quem faz acontecer</span>
+          </div>
           <span className="gallery-instagram-badge"><InstagramIcon size={18} /> @s.pcasting</span>
         </a>
       </section>
