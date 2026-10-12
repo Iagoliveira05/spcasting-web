@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, LockKeyhole } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, LockKeyhole } from "lucide-react";
 import { GoogleIcon } from "../../components/BrandIcons";
 import { loginWithEmail, loginWithGoogle } from "../../services/authService";
 import { useAuth } from "../../hooks/useAuth";
@@ -11,6 +11,7 @@ export function LoginPage() {
   const { configured } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const notice = (location.state as { message?: string } | null)?.message;
@@ -21,7 +22,9 @@ export function LoginPage() {
     setError("");
     try {
       const result = await loginWithEmail(email, password);
-      navigate(result.needsProfile ? "/perfil" : "/vagas");
+      navigate(
+        result.isAdmin ? "/admin" : result.needsProfile ? "/perfil" : "/vagas",
+      );
     } catch (reason) {
       setError(
         reason instanceof Error ? reason.message : "Não foi possível entrar.",
@@ -36,7 +39,9 @@ export function LoginPage() {
     setError("");
     try {
       const result = await loginWithGoogle();
-      navigate(result.needsProfile ? "/perfil" : "/vagas");
+      navigate(
+        result.isAdmin ? "/admin" : result.needsProfile ? "/perfil" : "/vagas",
+      );
     } catch (reason) {
       setError(
         reason instanceof Error
@@ -84,17 +89,30 @@ export function LoginPage() {
               placeholder="voce@email.com"
             />
           </label>
-          <label className="form-field">
-            Senha
-            <input
-              required
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="Sua senha"
-            />
-          </label>
+          <div className="form-field">
+            <label htmlFor="login-password">Senha</label>
+            <span className="password-field">
+              <input
+                id="login-password"
+                required
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="Sua senha"
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword((visible) => !visible)}
+                aria-label={showPassword ? "Ocultar senha" : "Visualizar senha"}
+                aria-pressed={showPassword}
+                title={showPassword ? "Ocultar senha" : "Visualizar senha"}
+              >
+                {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+              </button>
+            </span>
+          </div>
           {error && <p className="field-error">{error}</p>}
           <button
             className="primary-button"

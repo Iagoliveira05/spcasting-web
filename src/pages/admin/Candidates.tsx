@@ -17,7 +17,7 @@ import {
   removeApplication,
   setApplicationSelected,
 } from "../../services/applicationService";
-import { getJob, setJobStatus } from "../../services/jobService";
+import { deleteJob, getJob, setJobStatus } from "../../services/jobService";
 import { openComposite } from "../../services/compositeService";
 import { getUserProfile } from "../../services/userService";
 import { calculateAge, formatDate } from "../../utils/formatters";
@@ -40,6 +40,7 @@ export function CandidatesPage() {
   const [applicants, setApplicants] = useState<Applicant[]>([]);
   const [loading, setLoading] = useState(configured);
   const [busyId, setBusyId] = useState("");
+  const [jobBusy, setJobBusy] = useState(false);
   const [error, setError] = useState("");
 
   async function refresh() {
@@ -153,6 +154,7 @@ export function CandidatesPage() {
       !window.confirm(`Tem certeza que deseja encerrar a vaga "${job.name}"?`)
     )
       return;
+    setJobBusy(true);
     setError("");
     try {
       await setJobStatus(job.id, "finished");
@@ -163,6 +165,31 @@ export function CandidatesPage() {
           ? reason.message
           : "Não foi possível encerrar a vaga.",
       );
+    } finally {
+      setJobBusy(false);
+    }
+  }
+
+  async function removeJob() {
+    if (
+      !job ||
+      !window.confirm(
+        `Excluir permanentemente a vaga "${job.name}" e todas as suas candidaturas? Esta ação não pode ser desfeita.`,
+      )
+    )
+      return;
+    setJobBusy(true);
+    setError("");
+    try {
+      await deleteJob(job.id);
+      navigate("/admin/vagas", { replace: true });
+    } catch (reason) {
+      setError(
+        reason instanceof Error
+          ? reason.message
+          : "Não foi possível excluir a vaga.",
+      );
+      setJobBusy(false);
     }
   }
 
@@ -323,10 +350,22 @@ export function CandidatesPage() {
                   <Pencil size={14} /> Editar vaga
                 </Link>
                 {job.status !== "finished" && (
-                  <button type="button" onClick={() => void finishJob()}>
+                  <button
+                    type="button"
+                    disabled={jobBusy}
+                    onClick={() => void finishJob()}
+                  >
                     <CircleStop size={14} /> Encerrar vaga
                   </button>
                 )}
+                <button
+                  type="button"
+                  className="job-delete-action"
+                  disabled={jobBusy}
+                  onClick={() => void removeJob()}
+                >
+                  <Trash2 size={14} /> {jobBusy ? "Excluindo..." : "Excluir vaga"}
+                </button>
               </div>
             </div>
           </div>

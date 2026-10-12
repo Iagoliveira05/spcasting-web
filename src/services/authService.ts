@@ -13,6 +13,15 @@ import type { UserProfile } from "../types/User";
 import { isProfileComplete } from "../utils/profile";
 
 const adminUid = import.meta.env.VITE_FIREBASE_ADMIN_UID as string | undefined;
+const adminEmails = ["admin@gmail.com"];
+
+function isConfiguredAdmin(user: User) {
+  const email = user.email?.trim().toLowerCase();
+  return Boolean(
+    (adminUid && user.uid === adminUid) ||
+      (email && adminEmails.includes(email)),
+  );
+}
 
 function requireServices() {
   if (!isFirebaseConfigured || !auth || !db)
@@ -23,25 +32,31 @@ function requireServices() {
 async function ensureFreelancerProfile(
   user: User,
   name = "",
-): Promise<boolean> {
+): Promise<{ needsProfile: boolean; isAdmin: boolean }> {
   const { db } = requireServices();
   const profileRef = doc(db, "users", user.uid);
   const snapshot = await getDoc(profileRef);
-  const isConfiguredAdmin = Boolean(
-    adminUid && user.uid === adminUid && user.email,
-  );
+  const shouldBeAdmin = isConfiguredAdmin(user);
   if (snapshot.exists()) {
     const profile = snapshot.data();
-    if (profile.role === "admin") return false;
-    if (isConfiguredAdmin) {
+    if (profile.role === "admin") {
+      return { needsProfile: false, isAdmin: true };
+    }
+    if (shouldBeAdmin) {
       await setDoc(
         profileRef,
         { role: "admin", updatedAt: serverTimestamp() },
         { merge: true },
       );
-      return false;
+      return { needsProfile: false, isAdmin: true };
     }
-    return !isProfileComplete({ uid: user.uid, ...profile } as UserProfile);
+    return {
+      needsProfile: !isProfileComplete({
+        uid: user.uid,
+        ...profile,
+      } as UserProfile),
+      isAdmin: false,
+    };
   }
 
   await setDoc(profileRef, {
@@ -58,14 +73,14 @@ async function ensureFreelancerProfile(
     compositeUrl: "",
     compositePath: "",
     compositeType: null,
-    role: isConfiguredAdmin ? "admin" : "freelancer",
+    role: shouldBeAdmin ? "admin" : "freelancer",
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   } satisfies Omit<UserProfile, "createdAt" | "updatedAt"> & {
     createdAt: unknown;
     updatedAt: unknown;
   });
-  return true;
+  return { needsProfile: !shouldBeAdmin, isAdmin: shouldBeAdmin };
 }
 
 export async function registerWithEmail(
@@ -83,15 +98,15 @@ export async function registerWithEmail(
 export async function loginWithEmail(email: string, password: string) {
   const { auth } = requireServices();
   const result = await signInWithEmailAndPassword(auth, email, password);
-  const needsProfile = await ensureFreelancerProfile(result.user);
-  return { user: result.user, needsProfile };
+  const access = await ensureFreelancerProfile(result.user);
+  return { user: result.user, ...access };
 }
 
 export async function loginWithGoogle() {
   const { auth } = requireServices();
   const result = await signInWithPopup(auth, new GoogleAuthProvider());
-  const needsProfile = await ensureFreelancerProfile(result.user);
-  return { user: result.user, needsProfile };
+  const access = await ensureFreelancerProfile(result.user);
+  return { user: result.user, ...access };
 }
 
 export async function logout() {

@@ -5,9 +5,11 @@ service cloud.firestore {
     function isOwner(userId) { return signedIn() && request.auth.uid == userId; }
     function isBootstrapAdmin(userId) {
       return signedIn()
-        && userId == 'KUuPm1jtfFZTE3rQsf25hsA7f313'
         && request.auth.uid == userId
-        && request.auth.token.email == 'iago2011.andrade@hotmail.com';
+        && request.auth.token.email in [
+          'iago2011.andrade@hotmail.com',
+          'admin@gmail.com'
+        ];
     }
     function isAdmin() {
       return signedIn()
@@ -248,6 +250,7 @@ service cloud.firestore {
             && selectionRelease(resource.data.jobId, resource.data.userId));
       allow delete: if isAdmin()
           && (resource.data.status != 'selected'
+            || !existsAfter(/databases/$(database)/documents/jobs/$(resource.data.jobId))
             || selectionRelease(resource.data.jobId, resource.data.userId))
         || (signedIn()
           && resource.data.userId == request.auth.uid

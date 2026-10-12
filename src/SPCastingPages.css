@@ -199,6 +199,37 @@
   background: #f7f7f4;
   color: #929a93;
 }
+.password-field {
+  position: relative;
+  display: block;
+}
+.password-field input {
+  padding-right: 42px;
+}
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  transform: translateY(-50%);
+  place-items: center;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #69756d;
+  cursor: pointer;
+}
+.password-toggle:hover {
+  background: #f1f3ef;
+  color: #344139;
+}
+.password-toggle:focus-visible {
+  outline: 2px solid #aebdad;
+  outline-offset: 1px;
+}
 .span-two {
   grid-column: span 2;
 }
@@ -1351,6 +1382,19 @@
 .job-management-actions button:hover {
   border-color: #d3b8ae;
   background: #fdf7f4;
+}
+.job-management-actions .job-delete-action {
+  border-color: #d9a99f;
+  background: #fff7f5;
+  color: #a14334;
+}
+.job-management-actions .job-delete-action:hover {
+  border-color: #c98779;
+  background: #fce9e5;
+}
+.job-management-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 .candidate-section > .section-title {
   margin-top: 21px;

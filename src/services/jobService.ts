@@ -85,3 +85,28 @@ export async function setJobStatus(jobId: string, status: 'closed' | 'finished')
     updatedAt: serverTimestamp(),
   })
 }
+
+export async function deleteJob(jobId: string) {
+  const db = requireDb()
+  const applications = await getDocs(query(
+    collection(db, 'applications'),
+    where('jobId', '==', jobId),
+  ))
+  const pending = applications.docs.filter((item) => item.data().status !== 'selected')
+  const selected = applications.docs.filter((item) => item.data().status === 'selected')
+
+  for (let offset = 0; offset < pending.length; offset += 450) {
+    const batch = writeBatch(db)
+    pending.slice(offset, offset + 450).forEach((item) => batch.delete(item.ref))
+    await batch.commit()
+  }
+
+  if (selected.length > 499) {
+    throw new Error('Esta vaga possui candidatos selecionados demais para ser excluída em uma única operação.')
+  }
+
+  const finalBatch = writeBatch(db)
+  selected.forEach((item) => finalBatch.delete(item.ref))
+  finalBatch.delete(doc(db, 'jobs', jobId))
+  await finalBatch.commit()
+}

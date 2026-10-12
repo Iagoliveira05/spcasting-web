@@ -219,7 +219,7 @@ function AppShell() {
         {logoutError && <div className="inline-notice">{logoutError}</div>}
         <Suspense fallback={<div className="route-loading">Carregando página...</div>}>
           <Routes>
-          <Route path="/" element={<Navigate to="/vagas" replace />} />
+          <Route path="/" element={<Navigate to={profile?.role === "admin" ? "/admin" : "/vagas"} replace />} />
           <Route path="/sobre" element={<AboutPage />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/vagas" element={<JobsPage />} />
@@ -227,8 +227,8 @@ function AppShell() {
             <Route path="/inscricoes" element={<MyApplicationsPage />} />
             <Route path="/perfil" element={<ProfilePage />} />
           </Route>
-          <Route path="/login" element={<Navigate to="/vagas" replace />} />
-          <Route path="/cadastro" element={<Navigate to="/vagas" replace />} />
+          <Route path="/login" element={<Navigate to={profile?.role === "admin" ? "/admin" : "/vagas"} replace />} />
+          <Route path="/cadastro" element={<Navigate to={profile?.role === "admin" ? "/admin" : "/vagas"} replace />} />
           <Route element={<AdminRoute />}>
             <Route path="/admin" element={<AdminDashboardPage />} />
             <Route path="/admin/vagas" element={<AdminJobsPage />} />
