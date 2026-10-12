@@ -51,6 +51,8 @@ async function ensureFreelancerProfile(
     phone: "",
     birthDate: "",
     instagram: "",
+    bankName: "",
+    pixKey: "",
     cities: [],
     profilePhotoPath: "",
     compositeUrl: "",

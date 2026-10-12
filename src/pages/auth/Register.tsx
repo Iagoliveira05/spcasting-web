@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, UserRoundPlus } from "lucide-react";
-import { registerWithEmail } from "../../services/authService";
+import { GoogleIcon } from "../../components/BrandIcons";
+import { loginWithGoogle, registerWithEmail } from "../../services/authService";
 import { useAuth } from "../../hooks/useAuth";
 
 export function RegisterPage() {
@@ -31,10 +32,27 @@ export function RegisterPage() {
     }
   }
 
+  async function googleRegister() {
+    setBusy(true);
+    setError("");
+    try {
+      const result = await loginWithGoogle();
+      navigate(result.needsProfile ? "/perfil" : "/vagas");
+    } catch (reason) {
+      setError(
+        reason instanceof Error
+          ? reason.message
+          : "Não foi possível criar a conta com Google.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <section className="auth-wrap">
-      <Link to="/vagas" className="back-link">
-        <ArrowLeft size={15} /> Voltar às oportunidades
+      <Link to="/sobre" className="back-link">
+        <ArrowLeft size={15} /> Voltar para a página inicial
       </Link>
       <div className="auth-panel">
         <div className="auth-emblem">
@@ -103,6 +121,19 @@ export function RegisterPage() {
             {busy ? "Criando conta..." : "Criar minha conta"} <span>→</span>
           </button>
         </form>
+        <div className="auth-divider">
+          <span />
+          ou
+          <span />
+        </div>
+        <button
+          className="google-button"
+          type="button"
+          disabled={busy || !configured}
+          onClick={() => void googleRegister()}
+        >
+          <GoogleIcon size={17} /> Cadastrar com Google
+        </button>
         <p className="auth-switch">
           Já tem cadastro? <Link to="/login">Entrar</Link>
         </p>

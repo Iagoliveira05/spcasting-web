@@ -160,6 +160,14 @@ export function CandidateProfilePage() {
                 </a>
               ) : <strong>Não informado</strong>}
             </div>
+            <div>
+              <small>Banco</small>
+              <strong>{profile.bankName || "Não informado"}</strong>
+            </div>
+            <div>
+              <small>Chave PIX</small>
+              <strong>{profile.pixKey || "Não informada"}</strong>
+            </div>
             <div className="span-two">
               <small>Cidades disponíveis</small>
               <strong>

@@ -11,6 +11,8 @@ export interface UserProfile {
   phone: string;
   birthDate: string;
   instagram: string;
+  bankName: string;
+  pixKey: string;
   cities: City[];
   profilePhotoPath: string;
   compositeUrl: string;

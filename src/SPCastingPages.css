@@ -80,7 +80,7 @@
 }
 .form-section-heading {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   margin: 4px 0 18px;
   padding-bottom: 13px;
@@ -90,6 +90,7 @@
   margin-top: 31px;
 }
 .form-section-heading > span {
+  margin-top: 1px;
   color: #be6b4c;
   font-family: Georgia, serif;
   font-size: 19px;
@@ -114,6 +115,8 @@
 }
 .form-field {
   display: grid;
+  align-self: start;
+  align-content: start;
   gap: 7px;
   color: #59645c;
   font-size: 10px;

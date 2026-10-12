@@ -21,11 +21,15 @@ O projeto possui um MVP funcional e compila sem erros. Os fluxos principais de f
 
 - [x] Cadastro e login com e-mail/senha.
 - [x] Login com Google.
+- [x] Cadastro com Google.
 - [x] Criação automática do perfil de freelancer.
-- [x] Perfil com nome, e-mail, telefone, nascimento, Instagram, cidades, foto e composite.
+- [x] Visitantes recebem a página Sobre em tela cheia; vagas e navegação lateral exigem login.
+- [x] A página Sobre mantém ações flutuantes e chamativas para entrar ou criar conta, inclusive no mobile.
+- [x] Perfil com nome, e-mail, telefone, nascimento, Instagram, banco, chave PIX, cidades, foto e composite.
 - [x] Normalização do Instagram com `@` e links clicáveis nas telas administrativas.
 - [x] Seleção de múltiplas cidades pela API oficial do IBGE, sem duplicar IDs.
 - [x] Verificação de perfil completo antes da candidatura no frontend e nas regras.
+- [x] Banco e chave PIX obrigatórios para novas candidaturas e visíveis ao admin no perfil do candidato.
 
 ### Arquivos privados
 

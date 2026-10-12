@@ -1,6 +1,7 @@
-import { ArrowRight, BriefcaseBusiness, HeartHandshake, Sparkles, UsersRound } from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, HeartHandshake, LogIn, Sparkles, UserPlus, UsersRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import { InstagramIcon } from "../components/BrandIcons";
+import { useAuth } from "../hooks/useAuth";
 import actionImage from "../assets/acao-99-food-bags-brilho.png";
 import teamImage from "../assets/equipe-reunida-brilho.png";
 import promoterImage from "../assets/promotora-acao-vinho-enhanced.png";
@@ -13,15 +14,27 @@ const values = [
 ];
 
 export function AboutPage() {
+  const { user } = useAuth();
+
   return (
     <div className="about-page">
+      {!user && (
+        <nav className="about-access-actions" aria-label="Acesso à plataforma">
+          <Link className="about-access-login" to="/login">
+            <LogIn size={17} /> Entrar
+          </Link>
+          <Link className="about-access-register" to="/cadastro">
+            <UserPlus size={17} /> Criar conta
+          </Link>
+        </nav>
+      )}
       <section className="about-hero">
         <div className="about-hero-copy">
           <span className="about-kicker">SPCASTING · REDE DE TALENTOS</span>
           <h1>Gente que faz<br /><em>acontecer.</em></h1>
           <p>Somos uma agência de casting que aproxima profissionais e produções, criando encontros que viram experiências memoráveis.</p>
           <div className="about-actions">
-            <Link className="about-primary-action" to="/vagas">Ver oportunidades <ArrowRight size={17} /></Link>
+            <Link className="about-primary-action" to="/login">Entrar e ver oportunidades <ArrowRight size={17} /></Link>
             <a className="about-secondary-action" href="https://www.instagram.com/s.pcasting/" target="_blank" rel="noreferrer"><InstagramIcon size={17} /> @s.pcasting</a>
           </div>
         </div>

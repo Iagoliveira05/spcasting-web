@@ -48,11 +48,13 @@ O perfil contém:
 - telefone;
 - data de nascimento;
 - Instagram;
+- banco para recebimento;
+- chave PIX;
 - uma ou mais cidades;
 - foto de perfil;
 - um composite.
 
-Todos esses campos são obrigatórios para candidatura. O Instagram deve aceitar entrada com ou sem `@`, ser armazenado no formato `@usuario` e ser exibido como link clicável.
+Todos esses campos são obrigatórios para candidatura. O Instagram deve aceitar entrada com ou sem `@`, ser armazenado no formato `@usuario` e ser exibido como link clicável. Banco e chave PIX devem ser privados e visíveis somente ao próprio freelancer e ao administrador.
 
 ## 5. Cidades
 
@@ -169,4 +171,9 @@ Requisitos adicionais das regras:
 - Estados de carregamento e skeletons quando apropriado.
 - Toasts, estados vazios e mensagens de erro claras.
 - Confirmação antes de ações destrutivas.
+- Visitantes não autenticados visualizam a página Sobre em tela cheia e podem acessar login ou cadastro a partir dela.
+- A página Sobre deve manter botões de entrada e cadastro sempre visíveis durante a rolagem.
+- A listagem e os detalhes de vagas exigem autenticação.
+- A barra lateral e suas abas são exibidas somente após o login.
+- As telas de login e cadastro oferecem autenticação com Google.
 

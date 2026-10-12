@@ -9,7 +9,6 @@ import {
   useLocation,
 } from "react-router-dom";
 import {
-  ArrowRight,
   ArrowLeft,
   BriefcaseBusiness,
   ClipboardList,
@@ -103,7 +102,7 @@ const adminNavigation = [
 function AppShell() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [logoutError, setLogoutError] = useState("");
-  const { user, profile, configured } = useAuth();
+  const { user, profile, configured, loading } = useAuth();
   const location = useLocation();
   const isAdminArea = location.pathname.startsWith("/admin");
   const isAboutPage = location.pathname === "/sobre";
@@ -118,6 +117,26 @@ function AppShell() {
         reason instanceof Error ? reason.message : "Não foi possível sair.",
       );
     }
+  }
+
+  if (loading) {
+    return <div className="route-loading public-loading">Carregando...</div>;
+  }
+
+  if (!user) {
+    return (
+      <main className="public-main">
+        <Suspense fallback={<div className="route-loading public-loading">Carregando página...</div>}>
+          <Routes>
+            <Route path="/" element={<AboutPage />} />
+            <Route path="/sobre" element={<AboutPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/cadastro" element={<RegisterPage />} />
+            <Route path="*" element={<Navigate to="/sobre" replace />} />
+          </Routes>
+        </Suspense>
+      </main>
+    );
   }
 
   return (
@@ -161,18 +180,12 @@ function AppShell() {
         <div className="sidebar-bottom">
           <span className={`online-dot ${configured ? "connected-dot" : ""}`} />
           {configured ? "Firebase conectado" : "Firebase não configurado"}
-          {user ? (
-            <button
-              className="admin-link sidebar-logout"
-              onClick={() => void handleLogout()}
-            >
-              Sair da conta <LogOut size={15} />
-            </button>
-          ) : (
-            <NavLink to="/login" className="admin-link">
-              Entrar na plataforma <ArrowRight size={15} />
-            </NavLink>
-          )}
+          <button
+            className="admin-link sidebar-logout"
+            onClick={() => void handleLogout()}
+          >
+            Sair da conta <LogOut size={15} />
+          </button>
         </div>
       </aside>
 
@@ -196,32 +209,26 @@ function AppShell() {
             SPCasting <span>/</span>{" "}
             <strong>{isAdminArea ? "Administração" : isAboutPage ? "Sobre" : "Oportunidades"}</strong>
           </div>
-          {user ? (
-            <button
-              className="login-button"
-              onClick={() => void handleLogout()}
-            >
-              {profile?.name?.split(" ")[0] || "Sair"} <LogOut size={15} />
-            </button>
-          ) : (
-            <NavLink to="/login" className="login-button">
-              Entrar <ArrowRight size={16} />
-            </NavLink>
-          )}
+          <button
+            className="login-button"
+            onClick={() => void handleLogout()}
+          >
+            {profile?.name?.split(" ")[0] || "Sair"} <LogOut size={15} />
+          </button>
         </header>
         {logoutError && <div className="inline-notice">{logoutError}</div>}
         <Suspense fallback={<div className="route-loading">Carregando página...</div>}>
           <Routes>
           <Route path="/" element={<Navigate to="/vagas" replace />} />
-          <Route path="/vagas" element={<JobsPage />} />
           <Route path="/sobre" element={<AboutPage />} />
-          <Route path="/vagas/:jobId" element={<JobDetailsPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/cadastro" element={<RegisterPage />} />
           <Route element={<ProtectedRoute />}>
+            <Route path="/vagas" element={<JobsPage />} />
+            <Route path="/vagas/:jobId" element={<JobDetailsPage />} />
             <Route path="/inscricoes" element={<MyApplicationsPage />} />
             <Route path="/perfil" element={<ProfilePage />} />
           </Route>
+          <Route path="/login" element={<Navigate to="/vagas" replace />} />
+          <Route path="/cadastro" element={<Navigate to="/vagas" replace />} />
           <Route element={<AdminRoute />}>
             <Route path="/admin" element={<AdminDashboardPage />} />
             <Route path="/admin/vagas" element={<AdminJobsPage />} />

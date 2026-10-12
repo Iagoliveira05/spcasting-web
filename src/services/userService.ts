@@ -24,6 +24,8 @@ export async function saveUserProfile(
     | "phone"
     | "birthDate"
     | "instagram"
+    | "bankName"
+    | "pixKey"
     | "cities"
     | "profilePhotoPath"
     | "compositeUrl"

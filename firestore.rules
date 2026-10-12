@@ -66,6 +66,10 @@ service cloud.firestore {
         && candidate.phone is string && candidate.phone.size() >= 10
         && candidate.birthDate is string && candidate.birthDate.size() == 10
         && validInstagram(candidate.instagram) && candidate.instagram.size() > 0
+        && candidate.bankName is string && candidate.bankName.size() > 0
+        && candidate.bankName.size() <= 80
+        && candidate.pixKey is string && candidate.pixKey.size() > 0
+        && candidate.pixKey.size() <= 140
         && candidate.profilePhotoPath is string
         && validProfilePhotoPath(userId, candidate.profilePhotoPath)
         && candidate.profilePhotoPath.size() > 0
@@ -110,6 +114,10 @@ service cloud.firestore {
         && request.resource.data.profilePhotoPath is string
         && validProfilePhotoPath(userId, request.resource.data.profilePhotoPath)
         && validInstagram(request.resource.data.instagram)
+        && request.resource.data.bankName is string
+        && request.resource.data.bankName.size() <= 80
+        && request.resource.data.pixKey is string
+        && request.resource.data.pixKey.size() <= 140
         && (request.resource.data.role == 'freelancer'
           || (isBootstrapAdmin(userId)
             && request.resource.data.role == 'admin'));
@@ -121,6 +129,10 @@ service cloud.firestore {
         && request.resource.data.profilePhotoPath is string
         && validProfilePhotoPath(userId, request.resource.data.profilePhotoPath)
         && validInstagram(request.resource.data.instagram)
+        && request.resource.data.bankName is string
+        && request.resource.data.bankName.size() <= 80
+        && request.resource.data.pixKey is string
+        && request.resource.data.pixKey.size() <= 140
         && (request.resource.data.role == resource.data.role
           || (isBootstrapAdmin(userId)
             && resource.data.role == 'freelancer'

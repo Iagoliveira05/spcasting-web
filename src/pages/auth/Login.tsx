@@ -50,8 +50,8 @@ export function LoginPage() {
 
   return (
     <section className="auth-wrap">
-      <Link to="/vagas" className="back-link">
-        <ArrowLeft size={15} /> Voltar às oportunidades
+      <Link to="/sobre" className="back-link">
+        <ArrowLeft size={15} /> Voltar para a página inicial
       </Link>
       <div className="auth-panel">
         <div className="auth-emblem">

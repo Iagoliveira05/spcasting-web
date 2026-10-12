@@ -37,6 +37,15 @@ a {
 .app-frame {
   min-height: 100vh;
 }
+.public-main {
+  min-height: 100svh;
+  padding: 0 32px;
+}
+.public-loading {
+  display: grid;
+  min-height: 100svh;
+  place-items: center;
+}
 .sidebar {
   position: fixed;
   inset: 0 auto 0 0;
@@ -447,6 +456,13 @@ a {
 
 /* Sobre / landing page */
 .about-page { width: min(100%, 1120px); margin: 0 auto; padding: 42px 0 18px; }
+.about-access-actions { position: fixed; z-index: 20; top: 20px; right: 24px; display: flex; gap: 7px; padding: 6px; border: 1px solid #ffffff2b; border-radius: 999px; background: #0c0b0bf2; box-shadow: 0 14px 38px #1a0e0a38; backdrop-filter: blur(12px); }
+.about-access-actions a { display: inline-flex; min-height: 43px; align-items: center; justify-content: center; gap: 8px; padding: 0 17px; border-radius: 999px; font-size: 12px; font-weight: 800; transition: transform .2s ease, background .2s ease, color .2s ease; }
+.about-access-actions a:hover { transform: translateY(-1px); }
+.about-access-login { color: #fff; }
+.about-access-login:hover { background: #ffffff14; }
+.about-access-register { background: #e5946c; color: #1b0f0a; box-shadow: 0 7px 18px #d98f6945; }
+.about-access-register:hover { background: #f0a47d; }
 .about-hero { display: grid; grid-template-columns: minmax(300px, .88fr) minmax(420px, 1.12fr); min-height: 610px; overflow: hidden; border-radius: 30px; background: #0c0b0b; color: #f9f3ed; }
 .about-hero-copy { display: flex; flex-direction: column; justify-content: center; padding: 68px 40px 68px 54px; }
 .about-kicker, .about-intro > span, .about-gallery-heading span, .about-cta span { color: #d98f69; font-size: 10px; font-weight: 800; letter-spacing: 1.7px; }
@@ -521,6 +537,10 @@ a {
   }
 }
 @media (max-width: 700px) {
+  .public-main { padding: 0 16px; }
+  .about-page { padding-bottom: 94px; }
+  .about-access-actions { top: auto; right: 12px; bottom: 12px; left: 12px; justify-content: stretch; padding: 7px; border-color: #ffffff26; box-shadow: 0 10px 34px #160d0966; }
+  .about-access-actions a { flex: 1; min-height: 47px; padding: 0 12px; }
   .app-frame { min-height: 100dvh; }
   .sidebar {
     width: min(290px, calc(100vw - 55px));

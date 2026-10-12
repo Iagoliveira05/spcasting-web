@@ -39,7 +39,7 @@ No Console do Firebase:
 
 1. Crie a conta SPCasting em **Authentication > Users**, usando o provedor E-mail/senha habilitado.
 2. Copie o UID dessa conta.
-3. No Firestore Console, crie manualmente `users/{UID}` com `uid` igual ao UID e os campos `name`, `email`, `phone`, `birthDate`, `instagram`, `cities: []`, `compositeUrl: ""`, `compositePath: ""`, `compositeType: null`, `role: "admin"`, `createdAt` e `updatedAt` (timestamps).
+3. No Firestore Console, crie manualmente `users/{UID}` com `uid` igual ao UID e os campos `name`, `email`, `phone`, `birthDate`, `instagram`, `bankName`, `pixKey`, `cities: []`, `profilePhotoPath: ""`, `compositeUrl: ""`, `compositePath: ""`, `compositeType: null`, `role: "admin"`, `createdAt` e `updatedAt` (timestamps). Para a conta administrativa, `bankName` e `pixKey` podem ser strings vazias.
 4. Entre pelo `/login`. A conta administrativa só é provisionada pelo Console. Regras impedem que um freelancer altere seu `role` para `admin`.
 
 Não crie documento admin por formulário e nunca inclua credenciais de conta de serviço no frontend.

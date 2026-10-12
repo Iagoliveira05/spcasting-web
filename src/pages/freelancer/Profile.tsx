@@ -19,6 +19,8 @@ export function ProfilePage() {
   const [phone, setPhone] = useState(profile?.phone || "");
   const [birthDate, setBirthDate] = useState(profile?.birthDate || "");
   const [instagram, setInstagram] = useState(profile?.instagram || "");
+  const [bankName, setBankName] = useState(profile?.bankName || "");
+  const [pixKey, setPixKey] = useState(profile?.pixKey || "");
   const [cities, setCities] = useState<City[]>(profile?.cities || []);
   const [profilePhotoPath, setProfilePhotoPath] = useState(
     profile?.profilePhotoPath || "",
@@ -65,6 +67,14 @@ export function ProfilePage() {
       showToast("error", "Preencha seu Instagram para continuar.");
       return;
     }
+    if (!bankName) {
+      showToast("error", "Selecione o banco para recebimento.");
+      return;
+    }
+    if (!pixKey.trim()) {
+      showToast("error", "Informe sua chave PIX para recebimento.");
+      return;
+    }
     if (!cities.length) {
       showToast("error", "Adicione pelo menos uma cidade onde você pode trabalhar.");
       return;
@@ -87,6 +97,8 @@ export function ProfilePage() {
         phone: phone.replace(/\D/g, ""),
         birthDate,
         instagram: normalizedInstagram,
+        bankName,
+        pixKey: pixKey.trim(),
         cities,
         profilePhotoPath,
         ...composite,
@@ -190,6 +202,27 @@ export function ProfilePage() {
               placeholder="seuperfil ou @seuperfil"
             />
             <span className="field-hint">Você pode informar com ou sem @.</span>
+          </label>
+          <label className="form-field">
+            <span className="field-label"><span>Banco</span><small>Obrigatório</small></span>
+            <input
+              required
+              value={bankName}
+              onChange={(event) => setBankName(event.target.value)}
+              placeholder="Ex.: Bradesco, Itaú ou Nubank"
+              autoComplete="organization"
+            />
+          </label>
+          <label className="form-field">
+            <span className="field-label"><span>Chave PIX</span><small>Obrigatório</small></span>
+            <input
+              required
+              value={pixKey}
+              onChange={(event) => setPixKey(event.target.value)}
+              placeholder="CPF, e-mail, telefone ou chave aleatória"
+              autoComplete="off"
+            />
+            <span className="field-hint">Usada pela SPCasting para realizar pagamentos.</span>
           </label>
         </div>
         <div className="form-section-heading">

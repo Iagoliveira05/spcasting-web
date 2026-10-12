@@ -10,6 +10,8 @@ export function isProfileComplete(
       profile.phone.replace(/\D/g, "").length >= 10 &&
       profile.birthDate &&
       profile.instagram.trim() &&
+      (profile.bankName ?? "").trim() &&
+      (profile.pixKey ?? "").trim() &&
       profile.cities.length &&
       profile.profilePhotoPath &&
       profile.compositePath,

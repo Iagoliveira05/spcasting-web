@@ -4,6 +4,14 @@
 
 O MVP principal já está implementado. O trabalho restante deve priorizar segurança e consistência dos dados antes de melhorias visuais ou novas funcionalidades.
 
+## Alterações concluídas
+
+- [x] Tornar a página Sobre a experiência pública em tela cheia.
+- [x] Exigir autenticação para listar e visualizar vagas.
+- [x] Exibir a barra lateral somente para usuários autenticados.
+- [x] Disponibilizar cadastro com Google.
+- [x] Adicionar banco e chave PIX obrigatórios ao perfil e à elegibilidade para candidaturas.
+
 ## Fase 1 — Corrigir riscos de segurança e consistência
 
 - [ ] Unificar a definição da conta administrativa. Hoje o frontend usa `VITE_FIREBASE_ADMIN_UID`, enquanto as regras possuem UID e e-mail fixos; adotar uma única estratégia documentada e segura.
