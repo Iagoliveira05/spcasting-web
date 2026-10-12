@@ -26,6 +26,7 @@ import { AuthProvider } from "./contexts/AuthProvider";
 import { useAuth } from "./hooks/useAuth";
 import { logout } from "./services/authService";
 import logoImage from "./assets/logo-enhanced.png";
+import { friendlyError } from "./utils/errors";
 import "./SPCastingApp.css";
 import "./SPCastingPages.css";
 
@@ -113,9 +114,7 @@ function AppShell() {
       await logout();
       setMenuOpen(false);
     } catch (reason) {
-      setLogoutError(
-        reason instanceof Error ? reason.message : "Não foi possível sair.",
-      );
+      setLogoutError(friendlyError(reason, "Não foi possível sair. Tente novamente."));
     }
   }
 

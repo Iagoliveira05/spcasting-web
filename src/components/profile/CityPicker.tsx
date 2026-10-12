@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Plus, X } from "lucide-react";
 import { getMunicipalities, getStates } from "../../services/locationService";
 import type { City } from "../../types/City";
+import { friendlyError } from "../../utils/errors";
 
 type StateOption = Awaited<ReturnType<typeof getStates>>[number];
 
@@ -25,11 +26,7 @@ export function CityPicker({
     getStates()
       .then(setStates)
       .catch((reason: unknown) =>
-        setError(
-          reason instanceof Error
-            ? reason.message
-            : "Erro ao carregar estados.",
-        ),
+        setError(friendlyError(reason, "Não foi possível carregar os estados. Tente novamente.")),
       );
   }, []);
 
@@ -46,11 +43,7 @@ export function CityPicker({
         if (!active) return;
         setMunicipalities([]);
         setLoadedUf(uf);
-        setError(
-          reason instanceof Error
-            ? reason.message
-            : "Erro ao carregar municípios.",
-        );
+        setError(friendlyError(reason, "Não foi possível carregar os municípios. Tente novamente."));
       });
     return () => {
       active = false;

@@ -1,5 +1,6 @@
 import { useRef, useState, type PointerEvent } from "react";
 import { Check, X, ZoomIn } from "lucide-react";
+import { friendlyError } from "../../utils/errors";
 
 async function cropImage(file: File, zoom: number, x: number, y: number) {
   const source = URL.createObjectURL(file);
@@ -47,7 +48,7 @@ export function PhotoCropDialog({ file, preview, onCancel, onConfirm }: {
     try {
       await onConfirm(await cropImage(file, zoom, x, y));
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Não foi possível salvar a foto.");
+      setError(friendlyError(reason, "Não foi possível ajustar a foto. Tente novamente."));
     } finally {
       setBusy(false);
     }

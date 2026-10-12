@@ -6,6 +6,7 @@ import { getAllJobs } from "../../services/jobService";
 import { getApplicationCountsByJob } from "../../services/applicationService";
 import { formatCurrency, formatDate } from "../../utils/formatters";
 import type { Job, JobStatus } from "../../types/Job";
+import { friendlyError } from "../../utils/errors";
 import {
   DateSortButton,
   type DateSortOrder,
@@ -30,9 +31,7 @@ export function AdminJobsPage() {
         setApplicationCounts(counts);
       })
       .catch((reason: unknown) =>
-        setError(
-          reason instanceof Error ? reason.message : "Erro ao carregar vagas.",
-        ),
+        setError(friendlyError(reason, "Não foi possível carregar as vagas. Atualize a página e tente novamente.")),
       )
       .finally(() => setLoading(false));
   }, [configured]);

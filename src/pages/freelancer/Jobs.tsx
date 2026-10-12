@@ -18,6 +18,7 @@ import {
   DateSortButton,
   type DateSortOrder,
 } from "../../components/jobs/DateSortButton";
+import { friendlyError } from "../../utils/errors";
 
 export function JobsPage() {
   const { configured, user, profile } = useAuth();
@@ -37,11 +38,7 @@ export function JobsPage() {
     getOpenJobs()
       .then(setJobs)
       .catch((reason: unknown) =>
-        setError(
-          reason instanceof Error
-            ? reason.message
-            : "Não foi possível carregar as vagas.",
-        ),
+        setError(friendlyError(reason, "Não foi possível carregar as vagas. Atualize a página e tente novamente.")),
       )
       .finally(() => setLoading(false));
   }, [configured]);

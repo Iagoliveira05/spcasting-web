@@ -4,6 +4,7 @@ import { ArrowLeft, Eye, EyeOff, UserRoundPlus } from "lucide-react";
 import { GoogleIcon } from "../../components/BrandIcons";
 import { loginWithGoogle, registerWithEmail } from "../../services/authService";
 import { useAuth } from "../../hooks/useAuth";
+import { friendlyError } from "../../utils/errors";
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -24,9 +25,7 @@ export function RegisterPage() {
       navigate("/perfil");
     } catch (reason) {
       setError(
-        reason instanceof Error
-          ? reason.message
-          : "Não foi possível criar sua conta.",
+        friendlyError(reason, "Não foi possível criar sua conta. Tente novamente."),
       );
     } finally {
       setBusy(false);
@@ -43,9 +42,7 @@ export function RegisterPage() {
       );
     } catch (reason) {
       setError(
-        reason instanceof Error
-          ? reason.message
-          : "Não foi possível criar a conta com Google.",
+        friendlyError(reason, "Não foi possível criar a conta com Google. Tente novamente."),
       );
     } finally {
       setBusy(false);

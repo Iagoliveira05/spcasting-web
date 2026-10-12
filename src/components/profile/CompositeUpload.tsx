@@ -7,6 +7,7 @@ import {
   validateComposite,
 } from "../../services/compositeService";
 import type { CompositeType } from "../../types/User";
+import { friendlyError } from "../../utils/errors";
 
 interface CompositeValue {
   compositePath: string;
@@ -41,11 +42,7 @@ export function CompositeUpload({
         await deleteComposite(pendingPath).catch(() => undefined);
       }
     } catch (reason) {
-      setError(
-        reason instanceof Error
-          ? reason.message
-          : "Não foi possível enviar o arquivo.",
-      );
+      setError(friendlyError(reason, "Não foi possível enviar o arquivo. Tente novamente."));
     } finally {
       setBusy(false);
     }
@@ -59,11 +56,7 @@ export function CompositeUpload({
       window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (reason) {
       preview?.close();
-      setError(
-        reason instanceof Error
-          ? reason.message
-          : "Não foi possível abrir o composite.",
-      );
+      setError(friendlyError(reason, "Não foi possível abrir o composite. Tente novamente."));
     }
   }
 

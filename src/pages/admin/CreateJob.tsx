@@ -4,6 +4,7 @@ import { ChevronLeft } from "lucide-react";
 import { JobForm } from "../../components/jobs/JobForm";
 import { getJob } from "../../services/jobService";
 import type { Job } from "../../types/Job";
+import { friendlyError } from "../../utils/errors";
 
 export function CreateJobPage({ edit = false }: { edit?: boolean }) {
   const navigate = useNavigate();
@@ -20,9 +21,7 @@ export function CreateJobPage({ edit = false }: { edit?: boolean }) {
         else setJob(current);
       })
       .catch((reason: unknown) =>
-        setError(
-          reason instanceof Error ? reason.message : "Erro ao carregar vaga.",
-        ),
+        setError(friendlyError(reason, "Não foi possível carregar a vaga. Atualize a página e tente novamente.")),
       )
       .finally(() => setLoading(false));
   }, [edit, jobId]);

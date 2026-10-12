@@ -26,6 +26,7 @@ import type { Job } from "../../types/Job";
 import type { JobApplication } from "../../types/Application";
 import type { UserProfile } from "../../types/User";
 import { instagramUrl } from "../../utils/instagram";
+import { friendlyError } from "../../utils/errors";
 
 interface Applicant {
   application: JobApplication;
@@ -78,11 +79,7 @@ export function CandidatesPage() {
         setApplicants(candidates);
       })
       .catch((reason: unknown) =>
-        setError(
-          reason instanceof Error
-            ? reason.message
-            : "Erro ao carregar candidatos.",
-        ),
+        setError(friendlyError(reason, "Não foi possível carregar os candidatos. Atualize a página e tente novamente.")),
       )
       .finally(() => setLoading(false));
     return () => {
@@ -102,11 +99,7 @@ export function CandidatesPage() {
       );
       await refresh();
     } catch (reason) {
-      setError(
-        reason instanceof Error
-          ? reason.message
-          : "Não foi possível atualizar a seleção.",
-      );
+      setError(friendlyError(reason, "Não foi possível atualizar a seleção. Tente novamente."));
     } finally {
       setBusyId("");
     }
@@ -124,11 +117,7 @@ export function CandidatesPage() {
       await removeApplication(jobId, candidate.application.userId);
       await refresh();
     } catch (reason) {
-      setError(
-        reason instanceof Error
-          ? reason.message
-          : "Não foi possível remover o candidato.",
-      );
+      setError(friendlyError(reason, "Não foi possível remover o candidato. Tente novamente."));
     } finally {
       setBusyId("");
     }
@@ -140,11 +129,7 @@ export function CandidatesPage() {
       window.open(url, "_blank", "noopener,noreferrer");
       window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (reason) {
-      setError(
-        reason instanceof Error
-          ? reason.message
-          : "Não foi possível abrir o composite.",
-      );
+      setError(friendlyError(reason, "Não foi possível abrir o composite. Tente novamente."));
     }
   }
 
@@ -160,11 +145,7 @@ export function CandidatesPage() {
       await setJobStatus(job.id, "finished");
       await refresh();
     } catch (reason) {
-      setError(
-        reason instanceof Error
-          ? reason.message
-          : "Não foi possível encerrar a vaga.",
-      );
+      setError(friendlyError(reason, "Não foi possível encerrar a vaga. Tente novamente."));
     } finally {
       setJobBusy(false);
     }
@@ -184,11 +165,7 @@ export function CandidatesPage() {
       await deleteJob(job.id);
       navigate("/admin/vagas", { replace: true });
     } catch (reason) {
-      setError(
-        reason instanceof Error
-          ? reason.message
-          : "Não foi possível excluir a vaga.",
-      );
+      setError(friendlyError(reason, "Não foi possível excluir a vaga. Tente novamente."));
       setJobBusy(false);
     }
   }

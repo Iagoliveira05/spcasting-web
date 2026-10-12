@@ -18,6 +18,7 @@ import { formatCurrency, formatDate } from "../../utils/formatters";
 import type { Job } from "../../types/Job";
 import { localDateString } from "../../utils/formatters";
 import { isProfileComplete } from "../../utils/profile";
+import { friendlyError } from "../../utils/errors";
 
 export function JobDetailsPage() {
   const { jobId = "" } = useParams();
@@ -34,11 +35,7 @@ export function JobDetailsPage() {
     getJob(jobId)
       .then(setJob)
       .catch((reason: unknown) =>
-        setError(
-          reason instanceof Error
-            ? reason.message
-            : "Não foi possível abrir esta vaga.",
-        ),
+        setError(friendlyError(reason, "Não foi possível abrir esta vaga. Atualize a página e tente novamente.")),
       )
       .finally(() => setLoading(false));
   }, [configured, jobId]);
@@ -79,11 +76,7 @@ export function JobDetailsPage() {
       setIsApplied(true);
       setNotice("Sua candidatura foi enviada!");
     } catch (reason) {
-      setError(
-        reason instanceof Error
-          ? reason.message
-          : "Não foi possível concluir sua candidatura.",
-      );
+      setError(friendlyError(reason, "Não foi possível concluir sua candidatura. Tente novamente."));
     } finally {
       setBusy(false);
     }

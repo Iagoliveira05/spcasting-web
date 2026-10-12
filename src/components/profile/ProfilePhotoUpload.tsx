@@ -7,6 +7,7 @@ import {
   uploadProfilePhoto,
   validateProfilePhoto,
 } from "../../services/profilePhotoService";
+import { friendlyError } from "../../utils/errors";
 
 export function ProfilePhotoUpload({ uid, name, value, persistedPath, onChange }: {
   uid: string;
@@ -33,7 +34,7 @@ export function ProfilePhotoUpload({ uid, name, value, persistedPath, onChange }
       reader.onerror = () => setError("Não foi possível ler a foto selecionada.");
       reader.readAsDataURL(file);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Não foi possível ler a foto.");
+      setError(friendlyError(reason, "Não foi possível ler a foto selecionada."));
     }
   }
 
@@ -48,7 +49,7 @@ export function ProfilePhotoUpload({ uid, name, value, persistedPath, onChange }
         await deleteProfilePhoto(pendingPath).catch(() => undefined);
       setSelectedPhoto(null);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Não foi possível enviar a foto.");
+      setError(friendlyError(reason, "Não foi possível enviar a foto. Tente novamente."));
       throw reason;
     } finally {
       setBusy(false);

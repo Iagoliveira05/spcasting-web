@@ -4,6 +4,7 @@ import { saveJob } from "../../services/jobService";
 import { localDateString } from "../../utils/formatters";
 import type { City } from "../../types/City";
 import type { Job } from "../../types/Job";
+import { friendlyError } from "../../utils/errors";
 
 type StateOption = Awaited<ReturnType<typeof getStates>>[number];
 
@@ -37,11 +38,7 @@ export function JobForm({
     getStates()
       .then(setStates)
       .catch((reason: unknown) =>
-        setError(
-          reason instanceof Error
-            ? reason.message
-            : "Erro ao carregar estados.",
-        ),
+        setError(friendlyError(reason, "Não foi possível carregar os estados. Tente novamente.")),
       );
   }, []);
   useEffect(() => {
@@ -49,11 +46,7 @@ export function JobForm({
     getMunicipalities(uf)
       .then(setMunicipalities)
       .catch((reason: unknown) =>
-        setError(
-          reason instanceof Error
-            ? reason.message
-            : "Erro ao carregar municípios.",
-        ),
+        setError(friendlyError(reason, "Não foi possível carregar os municípios. Tente novamente.")),
       );
   }, [uf]);
 
@@ -117,11 +110,7 @@ export function JobForm({
       );
       onSaved(jobId);
     } catch (reason) {
-      setError(
-        reason instanceof Error
-          ? reason.message
-          : "Não foi possível salvar a vaga.",
-      );
+      setError(friendlyError(reason, "Não foi possível salvar a vaga. Revise os dados e tente novamente."));
     } finally {
       setBusy(false);
     }

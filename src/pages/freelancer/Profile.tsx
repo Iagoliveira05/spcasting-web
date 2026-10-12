@@ -12,6 +12,7 @@ import { deleteProfilePhoto } from "../../services/profilePhotoService";
 import type { City } from "../../types/City";
 import type { CompositeType } from "../../types/User";
 import { normalizeInstagram } from "../../utils/instagram";
+import { friendlyError } from "../../utils/errors";
 
 export function ProfilePage() {
   const { user, profile, refreshProfile, configured } = useAuth();
@@ -59,7 +60,7 @@ export function ProfilePage() {
     } catch (reason) {
       showToast(
         "error",
-        reason instanceof Error ? reason.message : "Informe um Instagram válido.",
+        friendlyError(reason, "Informe um Instagram válido."),
       );
       return;
     }
@@ -118,9 +119,7 @@ export function ProfilePage() {
     } catch (reason) {
       showToast(
         "error",
-        reason instanceof Error
-          ? reason.message
-          : "Não foi possível salvar o perfil.",
+        friendlyError(reason, "Não foi possível salvar o perfil. Tente novamente."),
       );
     } finally {
       setBusy(false);

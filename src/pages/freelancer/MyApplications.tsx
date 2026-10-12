@@ -18,6 +18,7 @@ import { getJob } from "../../services/jobService";
 import { formatDate } from "../../utils/formatters";
 import type { JobApplication } from "../../types/Application";
 import type { Job } from "../../types/Job";
+import { friendlyError } from "../../utils/errors";
 
 interface ApplicationWithJob {
   application: JobApplication;
@@ -44,11 +45,7 @@ export function MyApplicationsPage() {
         ),
       )
       .catch((reason: unknown) =>
-        setError(
-          reason instanceof Error
-            ? reason.message
-            : "Não foi possível carregar suas inscrições.",
-        ),
+        setError(friendlyError(reason, "Não foi possível carregar suas inscrições. Atualize a página e tente novamente.")),
       )
       .finally(() => setLoading(false));
   }, [configured, user]);
@@ -67,11 +64,7 @@ export function MyApplicationsPage() {
         current.filter((item) => item.application.id !== application.id),
       );
     } catch (reason) {
-      setError(
-        reason instanceof Error
-          ? reason.message
-          : "Não foi possível cancelar a inscrição.",
-      );
+      setError(friendlyError(reason, "Não foi possível cancelar a inscrição. Tente novamente."));
     }
   }
 

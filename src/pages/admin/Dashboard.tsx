@@ -12,6 +12,7 @@ import { countApplications } from "../../services/applicationService";
 import { getAllJobs } from "../../services/jobService";
 import { formatDate, localDateString } from "../../utils/formatters";
 import type { Job } from "../../types/Job";
+import { friendlyError } from "../../utils/errors";
 
 export function AdminDashboardPage() {
   const { configured } = useAuth();
@@ -28,11 +29,7 @@ export function AdminDashboardPage() {
         setApplications(total);
       })
       .catch((reason: unknown) =>
-        setError(
-          reason instanceof Error
-            ? reason.message
-            : "Não foi possível carregar o painel.",
-        ),
+        setError(friendlyError(reason, "Não foi possível carregar o painel. Atualize a página e tente novamente.")),
       )
       .finally(() => setLoading(false));
   }, [configured]);
@@ -43,9 +40,7 @@ export function AdminDashboardPage() {
   ).length;
   const closed = jobs.filter((job) => job.status === "closed").length;
   const finished = jobs.filter(
-    (job) =>
-      job.status === "finished" ||
-      job.date < today,
+    (job) => job.status === "finished" || job.date < today,
   ).length;
   const selected = jobs.reduce(
     (total, job) => total + (job.selectedWorkers || 0),
@@ -58,7 +53,7 @@ export function AdminDashboardPage() {
       <div className="admin-heading">
         <div>
           <h1>
-            Bom dia<span>.</span>
+            Bem-vindo<span>.</span>
           </h1>
           <p>Acompanhe a operação e as oportunidades da agência.</p>
         </div>

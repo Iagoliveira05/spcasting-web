@@ -4,6 +4,7 @@ import { ArrowLeft, Eye, EyeOff, LockKeyhole } from "lucide-react";
 import { GoogleIcon } from "../../components/BrandIcons";
 import { loginWithEmail, loginWithGoogle } from "../../services/authService";
 import { useAuth } from "../../hooks/useAuth";
+import { friendlyError } from "../../utils/errors";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -26,9 +27,7 @@ export function LoginPage() {
         result.isAdmin ? "/admin" : result.needsProfile ? "/perfil" : "/vagas",
       );
     } catch (reason) {
-      setError(
-        reason instanceof Error ? reason.message : "Não foi possível entrar.",
-      );
+      setError(friendlyError(reason, "Não foi possível entrar. Tente novamente."));
     } finally {
       setBusy(false);
     }
@@ -44,9 +43,7 @@ export function LoginPage() {
       );
     } catch (reason) {
       setError(
-        reason instanceof Error
-          ? reason.message
-          : "Não foi possível entrar com Google.",
+        friendlyError(reason, "Não foi possível entrar com Google. Tente novamente."),
       );
     } finally {
       setBusy(false);

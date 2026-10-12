@@ -19,6 +19,7 @@ import type { UserProfile } from "../../types/User";
 import type { Job } from "../../types/Job";
 import type { JobApplication } from "../../types/Application";
 import { instagramUrl } from "../../utils/instagram";
+import { friendlyError } from "../../utils/errors";
 import { getJob } from "../../services/jobService";
 import {
   getJobApplications,
@@ -52,11 +53,7 @@ export function CandidateProfilePage() {
         setApplication(applications.find((item) => item.userId === uid) || null);
       })
       .catch((reason: unknown) =>
-        setError(
-          reason instanceof Error
-            ? reason.message
-            : "Não foi possível carregar o perfil.",
-        ),
+        setError(friendlyError(reason, "Não foi possível carregar o perfil. Atualize a página e tente novamente.")),
       )
       .finally(() => setLoading(false));
   }, [configured, jobId, uid]);
@@ -80,7 +77,7 @@ export function CandidateProfilePage() {
         text: selecting ? "Candidato selecionado para esta vaga." : "Seleção desfeita com sucesso.",
       });
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Não foi possível atualizar a seleção.");
+      setError(friendlyError(reason, "Não foi possível atualizar a seleção. Tente novamente."));
     } finally {
       setBusy(false);
     }
@@ -94,7 +91,7 @@ export function CandidateProfilePage() {
       await removeApplication(jobId, uid);
       navigate(`/admin/vagas/${jobId}/candidatos`, { replace: true });
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Não foi possível remover o candidato.");
+      setError(friendlyError(reason, "Não foi possível remover o candidato. Tente novamente."));
       setBusy(false);
     }
   }
@@ -106,11 +103,7 @@ export function CandidateProfilePage() {
       window.open(url, "_blank", "noopener,noreferrer");
       window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (reason) {
-      setError(
-        reason instanceof Error
-          ? reason.message
-          : "Não foi possível abrir o composite.",
-      );
+      setError(friendlyError(reason, "Não foi possível abrir o composite. Tente novamente."));
     }
   }
 
